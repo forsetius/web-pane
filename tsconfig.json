@@ -1,0 +1,30 @@
+{
+  "extends": [
+    "@tsconfig/node24/tsconfig.json",
+    "@tsconfig/strictest/tsconfig.json"
+  ],
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "checkJs": false,
+    "declaration": true,
+    "declarationMap": true,
+    "noFallthroughCasesInSwitch": false,
+    "noLib": false,
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "rootDirs": ["./src", "./test"],
+    "sourceMap": true
+  },
+  "exclude": ["node_modules"],
+  "include": ["src/**/*.ts", "src/**/*.json", "test/**/*.ts"],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true,
+    "pretty": true
+  }
+}
