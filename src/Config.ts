@@ -18,7 +18,7 @@ export class Config {
     const configPath = this.ensureConfigExists();
     const raw = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(raw) as Partial<WindowConfig>;
-    console.log(parsed);
+
     try {
       return ConfigZodSchema.parse(parsed);
     } catch (e) {

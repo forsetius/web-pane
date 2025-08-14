@@ -31,13 +31,19 @@ export class App {
   }
 
   public async handleInvocation(argv: string[]) {
+    console.log(`Invocation: ${JSON.stringify(argv)}`);
     const { id, url, title, target } = getArgs(argv.slice(2), this.config.data);
 
     const windowState =
       this.browserWindows.pool.get(target) ??
       this.browserWindows.create(target, this.config.data.windows[target]);
 
-    if (windowState.currentViewKey === id && windowState.window.isFocused()) {
+    console.log({
+      currentViewKey: windowState.currentViewKey,
+      id,
+      isFocused: windowState.window.isFocused(),
+    });
+    if (windowState.currentViewKey === id) {
       windowState.window.minimize();
       return;
     }

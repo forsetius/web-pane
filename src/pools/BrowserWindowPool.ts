@@ -15,6 +15,8 @@ export class BrowserWindowPool {
       title: `WebPane – ${target}`,
       show: true,
       autoHideMenuBar: true,
+      // frame: false,
+      type: 'utility',
       skipTaskbar: true,
       webPreferences: {
         nodeIntegration: false,

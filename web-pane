@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# web-pane launcher (NVM-aware) + symlink installer
+set -euo pipefail
+
+# --- Ścieżki projektu i linku ---
+SCRIPT_PATH="$(readlink -f "$0")"
+PROJECT_DIR="$(dirname "$SCRIPT_PATH")"
+BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
+LINK_PATH="$BIN_DIR/web-pane"
+
+# --- Symlink do ~/.local/bin (jeśli trzeba) ---
+mkdir -p "$BIN_DIR"
+if [[ ! -L "$LINK_PATH" || "$(readlink -f "$LINK_PATH")" != "$SCRIPT_PATH" ]]; then
+  rm -f "$LINK_PATH"
+  ln -s "$SCRIPT_PATH" "$LINK_PATH"
+fi
+
+# --- Znajdź Node (systemowy → NVM z .nvmrc → najnowszy z NVM) ---
+find_node() {
+  if command -v node >/dev/null 2>&1; then
+    command -v node; return 0
+  fi
+  local nvm_dir="$HOME/.nvm"
+  [[ -d "$nvm_dir/versions/node" ]] || return 1
+
+  local wanted=""
+  [[ -f "$PROJECT_DIR/.nvmrc" ]] && wanted="$(<"$PROJECT_DIR/.nvmrc")"
+
+  # 1) Dokładny katalog wersji
+  if [[ -n "$wanted" && -x "$nvm_dir/versions/node/$wanted/bin/node" ]]; then
+    echo "$nvm_dir/versions/node/$wanted/bin/node"; return 0
+  fi
+  # 2) Prefiks major (np. v24 → wybierz najwyższe v24.x.y)
+  if [[ "$wanted" =~ ^v[0-9]+$ ]]; then
+    local cand
+    cand=$(ls -d "$nvm_dir/versions/node/${wanted}."*/bin/node 2>/dev/null | sort -V | tail -n1 || true)
+    [[ -n "$cand" ]] && echo "$cand" && return 0
+  fi
+  # 3) Najnowszy zainstalowany w NVM
+  local latest
+  latest=$(ls -d "$nvm_dir/versions/node/"v*/bin/node 2>/dev/null | sort -V | tail -n1 || true)
+  [[ -n "$latest" ]] && echo "$latest" && return 0
+
+  return 1
+}
+
+NODE_BIN="$(find_node || true)"
+if [[ -z "${NODE_BIN:-}" ]]; then
+  # Opcja awaryjna: spróbuj załadować nvm.sh i użyć 'nvm which'
+  if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+    # shellcheck disable=SC1090
+    . "$HOME/.nvm/nvm.sh"
+    if command -v nvm >/dev/null 2>&1; then
+      if [[ -f "$PROJECT_DIR/.nvmrc" ]]; then
+        nvm use --silent >/dev/null || true
+        NODE_BIN="$(command -v node || true)"
+      fi
+      [[ -z "${NODE_BIN:-}" ]] && NODE_BIN="$(nvm which node 2>/dev/null || true)"
+    fi
+  fi
+fi
+
+if [[ -z "${NODE_BIN:-}" ]]; then
+  echo "Nie znaleziono Node.js. Zainstaluj systemowego node'a albo wersję przez NVM." >&2
+  exit 127
+fi
+
+# --- Zapewnij zależności i build (opcjonalnie; możesz wyłączyć) ---
+NPM_BIN="$(dirname "$NODE_BIN")/npm"
+if [[ ! -d "$PROJECT_DIR/node_modules" ]]; then
+  "$NPM_BIN" --prefix "$PROJECT_DIR" ci
+fi
+if [[ ! -f "$PROJECT_DIR/dist/index.js" ]]; then
+  "$NPM_BIN" --prefix "$PROJECT_DIR" run build
+fi
+
+# --- Uruchom Electrona JASNO przez node, bez shebanga env node ---
+ELECTRON_CLI="$PROJECT_DIR/node_modules/electron/cli.js"
+exec "$NODE_BIN" "$ELECTRON_CLI" "$PROJECT_DIR" "$@"
