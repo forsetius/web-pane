@@ -6,4 +6,6 @@ if (!app.hasLock) {
   process.exit(0);
 }
 
-void app.electron.whenReady().then(() => app.handleInvocation(process.argv));
+void app.electron
+  .whenReady()
+  .then(() => app.handleInvocation(process.argv.slice(2)));

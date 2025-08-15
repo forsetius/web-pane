@@ -1,10 +1,28 @@
-import yargs from 'yargs';
+import yargs from 'yargs/yargs';
+import { app } from 'electron';
 import { TargetWindow } from '../types/TargetWindow.js';
 import { CliArgs } from '../types/CliArgs.js';
 import { WindowConfig } from '../types/WindowConfig.js';
 
-export function getArgs(argv: string[], config: WindowConfig): CliArgs {
-  return yargs(argv)
+export function normalizeArgs(args: string[]): string[] {
+  const argv: string[] = [];
+  const dotIndex = args.indexOf('.');
+  if (dotIndex > 1) {
+    const keys = args.slice(0, dotIndex);
+    const values = args.slice(dotIndex);
+    keys.forEach((key, idx) => {
+      argv.push(key);
+      argv.push(values[idx] ?? '');
+    });
+
+    return argv.slice(2);
+  }
+
+  return args.slice(2);
+}
+
+export function getArgs(args: string[], config: WindowConfig): CliArgs {
+  return yargs(args)
     .option('id', {
       type: 'string',
       describe: 'The webapp ID',
@@ -26,8 +44,24 @@ export function getArgs(argv: string[], config: WindowConfig): CliArgs {
       choices: Object.values(TargetWindow),
       default: config.defaultTarget,
     })
+    .check((args) => {
+      try {
+        new URL(args.url);
+      } catch {
+        throw new Error(`Invalid URL: ${args.url}`);
+      }
+
+      return true;
+    })
+    .exitProcess(false)
+    .fail((msg, err, yargs) => {
+      yargs.showHelp();
+      const out = msg || err.message || 'Nieznany błąd';
+      console.error(out);
+
+      app.exit(1);
+    })
     .version()
     .help()
-    .strict()
     .parseSync();
 }

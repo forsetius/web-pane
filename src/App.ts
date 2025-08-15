@@ -1,6 +1,6 @@
 import { WindowState } from './WindowState.js';
 import { app, WebContentsView } from 'electron';
-import { getArgs } from './functions/getArgs.js';
+import { getArgs, normalizeArgs } from './functions/getArgs.js';
 import { Config } from './Config.js';
 import { BrowserWindowPool } from './pools/BrowserWindowPool.js';
 import { WebContentViewPool } from './pools/WebContentViewPool.js';
@@ -19,7 +19,7 @@ export class App {
     }
 
     app.on('second-instance', (_event, argv) => {
-      void this.handleInvocation(argv);
+      void this.handleInvocation(normalizeArgs(argv));
     });
     app.on('window-all-closed', () => {
       app.quit();
@@ -31,20 +31,20 @@ export class App {
   }
 
   public async handleInvocation(argv: string[]) {
-    console.log(`Invocation: ${JSON.stringify(argv)}`);
-    const { id, url, title, target } = getArgs(argv.slice(2), this.config.data);
+    const args = getArgs(argv, this.config.data);
+    const { id, url, title, target } = args;
 
     const windowState =
       this.browserWindows.pool.get(target) ??
       this.browserWindows.create(target, this.config.data.windows[target]);
 
-    console.log({
-      currentViewKey: windowState.currentViewKey,
-      id,
-      isFocused: windowState.window.isFocused(),
-    });
     if (windowState.currentViewKey === id) {
-      windowState.window.minimize();
+      if (windowState.window.isMinimized()) {
+        windowState.window.restore();
+      } else {
+        windowState.window.minimize();
+      }
+
       return;
     }
 

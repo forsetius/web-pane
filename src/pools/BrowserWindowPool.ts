@@ -16,10 +16,10 @@ export class BrowserWindowPool {
       show: true,
       autoHideMenuBar: true,
       // frame: false,
-      type: 'utility',
+      // type: 'utility',
       skipTaskbar: true,
       webPreferences: {
-        nodeIntegration: false,
+        nodeIntegration: true,
         contextIsolation: true,
       },
     });
