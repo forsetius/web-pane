@@ -6,10 +6,10 @@ import { WindowConfig } from '../types/WindowConfig.js';
 
 export function normalizeArgs(args: string[]): string[] {
   const argv: string[] = [];
-  const dotIndex = args.indexOf('.');
-  if (dotIndex > 1) {
-    const keys = args.slice(0, dotIndex);
-    const values = args.slice(dotIndex);
+  const splitAt = args.findLastIndex((arg) => arg.startsWith('--')) + 1;
+  if (splitAt > 1) {
+    const keys = args.slice(0, splitAt);
+    const values = args.slice(splitAt);
     keys.forEach((key, idx) => {
       argv.push(key);
       argv.push(values[idx] ?? '');

@@ -8,14 +8,12 @@ PROJECT_DIR="$(dirname "$SCRIPT_PATH")"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 LINK_PATH="$BIN_DIR/web-pane"
 
-# --- Symlink do ~/.local/bin (jeśli trzeba) ---
 mkdir -p "$BIN_DIR"
 if [[ ! -L "$LINK_PATH" || "$(readlink -f "$LINK_PATH")" != "$SCRIPT_PATH" ]]; then
   rm -f "$LINK_PATH"
   ln -s "$SCRIPT_PATH" "$LINK_PATH"
 fi
 
-# --- Znajdź Node (systemowy → NVM z .nvmrc → najnowszy z NVM) ---
 find_node() {
   if command -v node >/dev/null 2>&1; then
     command -v node; return 0
@@ -46,7 +44,6 @@ find_node() {
 
 NODE_BIN="$(find_node || true)"
 if [[ -z "${NODE_BIN:-}" ]]; then
-  # Opcja awaryjna: spróbuj załadować nvm.sh i użyć 'nvm which'
   if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
     # shellcheck disable=SC1090
     . "$HOME/.nvm/nvm.sh"
@@ -61,11 +58,10 @@ if [[ -z "${NODE_BIN:-}" ]]; then
 fi
 
 if [[ -z "${NODE_BIN:-}" ]]; then
-  echo "Nie znaleziono Node.js. Zainstaluj systemowego node'a albo wersję przez NVM." >&2
+  echo "Node.js not found. Install it from a system package or through the NVM." >&2
   exit 127
 fi
 
-# --- Zapewnij zależności i build (opcjonalnie; możesz wyłączyć) ---
 NPM_BIN="$(dirname "$NODE_BIN")/npm"
 if [[ ! -d "$PROJECT_DIR/node_modules" ]]; then
   "$NPM_BIN" --prefix "$PROJECT_DIR" ci
@@ -74,6 +70,5 @@ if [[ ! -f "$PROJECT_DIR/dist/index.js" ]]; then
   "$NPM_BIN" --prefix "$PROJECT_DIR" run build
 fi
 
-# --- Uruchom Electrona JASNO przez node, bez shebanga env node ---
 ELECTRON_CLI="$PROJECT_DIR/node_modules/electron/cli.js"
 exec "$NODE_BIN" "$ELECTRON_CLI" "$PROJECT_DIR" "$@"
