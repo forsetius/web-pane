@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { Lang } from './Lang.js';
 import { TargetWindow } from './TargetWindow.js';
 
 export const ConfigZodSchema = z.object({
   defaultTarget: z.enum(TargetWindow),
+  lang: z.enum(Lang),
   windows: z.record(
     z.enum(TargetWindow),
     z.object({

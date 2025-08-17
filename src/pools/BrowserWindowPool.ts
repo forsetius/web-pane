@@ -1,7 +1,6 @@
 import { BrowserWindow } from 'electron';
-import { TargetWindow } from '../types/TargetWindow.js';
+import { TargetWindow, WindowGeometry } from '../types/index.js';
 import { WindowState } from '../WindowState.js';
-import { WindowGeometry } from '../types/WindowGeometry.js';
 import { Config } from '../Config.js';
 
 export class BrowserWindowPool {

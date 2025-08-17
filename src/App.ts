@@ -1,9 +1,17 @@
-import { WindowState } from './WindowState.js';
-import { app, WebContentsView } from 'electron';
-import { getArgs, normalizeArgs } from './functions/getArgs.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'module';
+import { app, contextBridge, ipcRenderer, WebContentsView } from 'electron';
+import yargs from 'yargs/yargs';
 import { Config } from './Config.js';
+import { WindowState } from './WindowState.js';
+import { langCommand, showCommand } from './commands/index.js';
+import { normalizeArgs } from './functions/normalizeArgs.js';
 import { BrowserWindowPool } from './pools/BrowserWindowPool.js';
 import { WebContentViewPool } from './pools/WebContentViewPool.js';
+import { Lang, TranslationStrings } from './types/index.js';
+
+const importSync = createRequire(import.meta.url);
 
 export class App {
   public readonly hasLock: boolean;
@@ -11,6 +19,7 @@ export class App {
   public readonly electron: typeof app;
   public readonly browserWindows: BrowserWindowPool;
   public readonly webContentViews = new WebContentViewPool();
+  private readonly translations: Record<Lang, TranslationStrings>;
 
   public constructor() {
     this.hasLock = app.requestSingleInstanceLock();
@@ -18,46 +27,63 @@ export class App {
       app.quit();
     }
 
+    contextBridge.exposeInMainWorld('webPane', {
+      onLangChanged: (cb: (lang: string) => void) => {
+        ipcRenderer.on('lang:changed', (_ev, payload: { lang: string }) => {
+          cb(payload.lang);
+        });
+      },
+    });
+
     app.on('second-instance', (_event, argv) => {
-      void this.handleInvocation(normalizeArgs(argv));
+      this.handleInvocation(normalizeArgs(argv));
     });
     app.on('window-all-closed', () => {
       app.quit();
     });
+
+    this.translations = Object.fromEntries(
+      fs.globSync('./translations/*.js').map((filepath: string) => {
+        const lang = path.basename(filepath, '.js');
+        if (!(lang in Object.values(Lang))) {
+          throw new Error(`Not supported translation "${lang}"`);
+        }
+
+        return [lang as Lang, importSync(filepath) as TranslationStrings];
+      }),
+    ) as Record<Lang, TranslationStrings>;
+    if (
+      Object.values(this.translations).length !== Object.values(Lang).length
+    ) {
+      throw new Error('Not all translations defined');
+    }
 
     this.config = new Config();
     this.browserWindows = new BrowserWindowPool(this.config);
     this.electron = app;
   }
 
-  public async handleInvocation(argv: string[]) {
-    const args = getArgs(argv, this.config.data);
-    const { id, url, title, target } = args;
+  public handleInvocation(argv: string[]) {
+    yargs(argv)
+      .command(showCommand(this))
+      .command(langCommand(this))
+      .exitProcess(false)
+      .fail((msg, err, yargs) => {
+        yargs.showHelp();
+        const out =
+          msg ||
+          err.message ||
+          this.translations[this.config.data.lang].unknownError;
+        console.error(out);
 
-    const windowState =
-      this.browserWindows.pool.get(target) ??
-      this.browserWindows.create(target, this.config.data.windows[target]);
-
-    if (windowState.currentViewKey === id) {
-      if (windowState.window.isMinimized()) {
-        windowState.window.restore();
-      } else {
-        windowState.window.minimize();
-      }
-
-      return;
-    }
-
-    this.attachViewToWindow(
-      windowState,
-      id,
-      this.webContentViews.pool.get(id) ??
-        (await this.webContentViews.create(id, url)),
-      title,
-    );
+        app.exit(1);
+      })
+      .version()
+      .help()
+      .parseSync();
   }
 
-  private attachViewToWindow(
+  public attachViewToWindow(
     windowState: WindowState,
     viewKey: string,
     webContentsView: WebContentsView,
@@ -85,5 +111,14 @@ export class App {
     window.setTitle(title);
     window.show();
     window.focus();
+  }
+
+  public setLanguage(lang: Lang) {
+    this.config.data.lang = lang;
+    process.env['WEB_PANE_LANG'] = lang;
+
+    for (const [, browserWindow] of this.browserWindows.pool) {
+      browserWindow.window.webContents.send('lang:changed', { lang });
+    }
   }
 }
