@@ -1,18 +1,24 @@
 export interface TranslationStrings {
-  back: string;
-  closeTab: string;
-  closeTabAlt: string;
-  file: string;
-  forceReload: string;
-  forward: string;
-  navigation: string;
-  quit: string;
-  reload: string;
-  resetZoom: string;
-  toggleDevTools: string;
-  toggleFullscreen: string;
-  unknownError: string;
-  view: string;
-  zoomIn: string;
-  zoomOut: string;
+  error: {
+    unknown: string;
+  };
+  menu: {
+    backward: string;
+    closeTab: string;
+    english: string;
+    file: string;
+    forceReload: string;
+    forward: string;
+    language: string;
+    navigation: string;
+    polish: string;
+    quit: string;
+    reload: string;
+    resetZoom: string;
+    toggleDevTools: string;
+    toggleFullscreen: string;
+    view: string;
+    zoomIn: string;
+    zoomOut: string;
+  };
 }

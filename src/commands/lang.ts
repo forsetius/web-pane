@@ -19,7 +19,7 @@ export const langCommand: (app: App) => CommandModule<object, LangCliArgs> = (
       demandOption: true,
     }),
   handler: (argv) => {
-    app.setLanguage(argv.lang);
+    app.changeLanguage(argv.lang);
     console.log(`Language set to: ${argv.lang}`);
 
     app.electron.exit(0);

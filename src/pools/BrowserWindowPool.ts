@@ -13,8 +13,8 @@ export class BrowserWindowPool {
       ...geometry,
       title: `WebPane – ${target}`,
       show: true,
-      autoHideMenuBar: true,
-      frame: false,
+      autoHideMenuBar: false,
+      frame: true,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: true,
