@@ -1,15 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'module';
-import { app, WebContentsView } from 'electron';
+import { app } from 'electron';
 import yargs from 'yargs/yargs';
 import { AppMenu } from './AppMenu.js';
+import { BrowserWindowPool } from './BrowserWindowPool.js';
 import { Config } from './Config.js';
-import { WindowState } from './WindowState.js';
-import { langCommand, showCommand } from './commands/index.js';
-import { BrowserWindowPool } from './pools/BrowserWindowPool.js';
-import { WebContentViewPool } from './pools/WebContentViewPool.js';
-import { Lang, TranslationStrings } from './types/index.js';
+import { langCommand, showCommand } from '../cliCommands/index.js';
+import { Lang, TranslationStrings } from '../types/index.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 const importSyncDefault = <T>(path: string): T => {
@@ -23,7 +21,6 @@ export class App {
   public readonly electron: typeof app;
   public readonly appMenu: AppMenu;
   public readonly browserWindows: BrowserWindowPool;
-  public readonly webContentViews = new WebContentViewPool();
   private readonly translations: Record<Lang, TranslationStrings>;
 
   public constructor() {
@@ -33,14 +30,6 @@ export class App {
     if (!this.hasLock) {
       app.quit();
     }
-
-    // contextBridge.exposeInMainWorld('webPane', {
-    //   onLangChanged: (cb: (lang: string) => void) => {
-    //     ipcRenderer.on('lang:changed', (_ev, payload: { lang: string }) => {
-    //       cb(payload.lang);
-    //     });
-    //   },
-    // });
 
     app.on('second-instance', (_e, _argv, _wd, data) => {
       this.handleInvocation((data as { rawArgv: string[] }).rawArgv);
@@ -58,10 +47,7 @@ export class App {
           ([lang, t]) => [lang, t.menu] as const,
         ),
       ) as Record<Lang, TranslationStrings['menu']>,
-      (lang) => {
-        this.changeLanguage(lang);
-      },
-      this.config.data.lang,
+      this,
     );
     this.electron = app;
   }
@@ -86,36 +72,6 @@ export class App {
       .parse();
   }
 
-  public attachViewToWindow(
-    windowState: WindowState,
-    viewKey: string,
-    webContentsView: WebContentsView,
-    title: string,
-  ) {
-    const { window } = windowState;
-
-    if (windowState.currentViewKey) {
-      const oldView = this.webContentViews.pool.get(windowState.currentViewKey);
-      if (oldView) {
-        window.contentView.removeChildView(oldView);
-      }
-    }
-
-    window.contentView.addChildView(webContentsView);
-    const [width, height] = window.getContentSize();
-    webContentsView.setBounds({
-      x: 0,
-      y: 0,
-      width: width ?? 720,
-      height: height ?? 980,
-    });
-
-    windowState.currentViewKey = viewKey;
-    window.setTitle(title);
-    window.show();
-    window.focus();
-  }
-
   public changeLanguage(lang: Lang) {
     this.config.data.lang = lang;
     this.config.save();
@@ -126,7 +82,7 @@ export class App {
   private fetchTranslations(): Record<Lang, TranslationStrings> {
     const translations = Object.fromEntries(
       fs
-        .globSync(`${import.meta.dirname}/translations/*.js`)
+        .globSync(`${import.meta.dirname}/../translations/*.js`)
         .map((filepath: string) => {
           const lang = path.basename(filepath, '.js');
           if (!(Object.values(Lang) as string[]).includes(lang)) {

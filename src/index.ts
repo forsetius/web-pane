@@ -1,5 +1,5 @@
 #!/bin/env node
-import { App } from './App.js';
+import { App } from './domain/App.js';
 
 const app = new App();
 if (!app.hasLock) {

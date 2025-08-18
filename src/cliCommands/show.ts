@@ -1,13 +1,13 @@
-import { TargetWindow } from '../types/index.js';
 import { Argv, CommandModule } from 'yargs';
 import { configDefaults } from '../configDefaults.js';
-import { App } from '../App.js';
+import { App } from '../domain/App.js';
+import { TargetAppWindow } from '../types/index.js';
 
 export interface ShowCliArgs {
   id: string;
   url: string;
   title: string;
-  target: TargetWindow;
+  target: TargetAppWindow;
 }
 
 export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
@@ -36,7 +36,7 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
       .option('target', {
         type: 'string',
         describe: 'Target window',
-        choices: Object.values(TargetWindow),
+        choices: Object.values(TargetAppWindow),
         default: configDefaults.defaultTarget,
       })
       .check((args) => {
@@ -51,26 +51,20 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
   handler: async (argv) => {
     const { id, url, title, target } = argv;
 
-    const windowState =
+    const appWindow =
       app.browserWindows.pool.get(target) ??
       app.browserWindows.create(target, app.config.data.windows[target]);
 
-    if (windowState.currentViewKey === id) {
-      if (windowState.window.isMinimized()) {
-        windowState.window.restore();
+    if (appWindow.currentViewKey === id) {
+      if (appWindow.window.isMinimized()) {
+        appWindow.window.restore();
       } else {
-        windowState.window.minimize();
+        appWindow.window.minimize();
       }
 
       return;
     }
 
-    app.attachViewToWindow(
-      windowState,
-      id,
-      app.webContentViews.pool.get(id) ??
-        (await app.webContentViews.create(id, url)),
-      title,
-    );
+    await appWindow.showView(id, url, title);
   },
 });

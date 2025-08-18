@@ -1,14 +1,13 @@
-import { BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
-import { Lang, TranslationStrings } from './types/index.js';
-import BaseWindow = Electron.BaseWindow;
+import { Menu, MenuItemConstructorOptions } from 'electron';
+import { App } from './App.js';
+import { Lang, TranslationStrings } from '../types/index.js';
 
 export class AppMenu {
   public constructor(
     private readonly translations: Record<Lang, TranslationStrings['menu']>,
-    private readonly onLanguageChange: (lang: Lang) => void,
-    currentLang: Lang,
+    private readonly app: App,
   ) {
-    this.build(currentLang);
+    this.build(app.config.data.lang);
   }
 
   public build(lang: Lang) {
@@ -19,15 +18,6 @@ export class AppMenu {
           {
             role: 'close',
             accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Ctrl+F4',
-          },
-          {
-            label: this.translations[lang].closeTab,
-            accelerator: 'Ctrl+W',
-            click: (_menuItem, window) => {
-              if (this.isBrowserWindow(window)) {
-                window.close();
-              }
-            },
           },
           { type: 'separator' },
           {
@@ -43,20 +33,16 @@ export class AppMenu {
           {
             label: this.translations[lang].reload,
             accelerator: process.platform === 'darwin' ? 'Cmd+R' : 'Ctrl+R',
-            click: (_menuItem, window) => {
-              if (this.isBrowserWindow(window)) {
-                window.webContents.reload();
-              }
+            click: () => {
+              this.reload();
             },
           },
           {
             label: this.translations[lang].forceReload,
             accelerator:
               process.platform === 'darwin' ? 'Cmd+Shift+R' : 'Ctrl+Shift+R',
-            click: (_menuItem, window) => {
-              if (this.isBrowserWindow(window)) {
-                window.webContents.reloadIgnoringCache();
-              }
+            click: () => {
+              this.reloadUncached();
             },
           },
           { type: 'separator' },
@@ -80,24 +66,15 @@ export class AppMenu {
           {
             label: this.translations[lang].backward,
             accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Alt+Left',
-            click: (_menuItem, window) => {
-              if (this.isBrowserWindow(window)) {
-                console.log('tr');
-                const wc = window.webContents;
-                if (wc.navigationHistory.canGoBack())
-                  wc.navigationHistory.goBack();
-              }
+            click: () => {
+              this.goBack();
             },
           },
           {
             label: this.translations[lang].forward,
             accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Alt+Right',
-            click: (_menuItem, window) => {
-              if (this.isBrowserWindow(window)) {
-                const wc = window.webContents;
-                if (wc.navigationHistory.canGoForward())
-                  wc.navigationHistory.goForward();
-              }
+            click: () => {
+              this.goForward();
             },
           },
         ],
@@ -108,15 +85,17 @@ export class AppMenu {
           {
             label: this.translations[lang].polish,
             type: 'radio',
+            checked: this.app.config.data.lang === Lang.PL,
             click: () => {
-              this.onLanguageChange(Lang.PL);
+              this.changeLanguage(Lang.PL);
             },
           },
           {
             label: this.translations[lang].english,
             type: 'radio',
+            checked: this.app.config.data.lang === Lang.EN,
             click: () => {
-              this.onLanguageChange(Lang.EN);
+              this.changeLanguage(Lang.EN);
             },
           },
         ],
@@ -126,9 +105,35 @@ export class AppMenu {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   }
 
-  private isBrowserWindow(
-    window: BaseWindow | undefined,
-  ): window is BrowserWindow {
-    return window instanceof BrowserWindow;
+  private changeLanguage(lang: Lang) {
+    this.app.changeLanguage(lang);
+  }
+
+  private goBack() {
+    const viewHistory = this.app.browserWindows.getActive()?.getCurrentView()
+      ?.webContents.navigationHistory;
+
+    if (viewHistory?.canGoBack()) viewHistory.goBack();
+  }
+
+  private goForward() {
+    const viewHistory = this.app.browserWindows.getActive()?.getCurrentView()
+      ?.webContents.navigationHistory;
+
+    if (viewHistory?.canGoForward()) viewHistory.goForward();
+  }
+
+  private reload() {
+    const appWindow = this.app.browserWindows.getActive();
+    if (!appWindow) return;
+
+    appWindow.getCurrentView()?.webContents.reload();
+  }
+
+  private reloadUncached() {
+    const appWindow = this.app.browserWindows.getActive();
+    if (!appWindow) return;
+
+    appWindow.getCurrentView()?.webContents.reloadIgnoringCache();
   }
 }

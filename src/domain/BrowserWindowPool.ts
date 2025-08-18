@@ -1,20 +1,27 @@
 import { BrowserWindow } from 'electron';
-import { TargetWindow, WindowGeometry } from '../types/index.js';
-import { WindowState } from '../WindowState.js';
-import { Config } from '../Config.js';
+import { AppWindow } from './AppWindow.js';
+import { Config } from './Config.js';
+import { TargetAppWindow, WindowGeometry } from '../types/index.js';
 
 export class BrowserWindowPool {
-  public readonly pool = new Map<TargetWindow, WindowState>(); // target -> window state
+  public readonly pool = new Map<TargetAppWindow, AppWindow>(); // target -> window state
 
   public constructor(private readonly config: Config) {}
 
-  public create(target: TargetWindow, geometry: WindowGeometry) {
+  public getActive() {
+    return Array.from(this.pool.values()).find((appWindow) =>
+      appWindow.window.isFocused(),
+    );
+  }
+
+  public create(target: TargetAppWindow, geometry: WindowGeometry) {
     const window = new BrowserWindow({
       ...geometry,
       title: `WebPane – ${target}`,
       show: true,
-      autoHideMenuBar: false,
-      frame: true,
+      autoHideMenuBar: true,
+      frame: false,
+      type: 'utility',
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: true,
@@ -27,10 +34,10 @@ export class BrowserWindowPool {
 
     window.on('closed', () => this.pool.delete(target));
     window.on('resize', () => {
-      const windowState = this.pool.get(target);
-      if (!windowState?.currentViewKey) return;
+      const appWindow = this.pool.get(target);
+      if (!appWindow?.currentViewKey) return;
 
-      const webContentsView = windowState.views.get(windowState.currentViewKey);
+      const webContentsView = appWindow.getCurrentView();
       if (!webContentsView) return;
 
       const [width, height] = window.getContentSize() as [number, number];
@@ -41,13 +48,13 @@ export class BrowserWindowPool {
     window.on('move', persistGeometry);
     window.on('always-on-top-changed', persistGeometry);
 
-    const windowState = new WindowState(window);
-    this.pool.set(target, windowState);
+    const appWindow = new AppWindow(window);
+    this.pool.set(target, appWindow);
 
-    return windowState;
+    return appWindow;
   }
 
-  public persistWindowGeometry(target: TargetWindow) {
+  public persistWindowGeometry(target: TargetAppWindow) {
     const state = this.pool.get(target);
     if (!state) return;
 

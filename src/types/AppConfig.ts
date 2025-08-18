@@ -1,9 +1,9 @@
 import { Lang } from './Lang.js';
-import { TargetWindow } from './TargetWindow.js';
+import { TargetAppWindow } from './TargetAppWindow.js';
 import { WindowGeometry } from './WindowGeometry.js';
 
 export interface AppConfig {
-  defaultTarget: TargetWindow;
+  defaultTarget: TargetAppWindow;
   lang: Lang;
-  windows: Record<TargetWindow, WindowGeometry>;
+  windows: Record<TargetAppWindow, WindowGeometry>;
 }

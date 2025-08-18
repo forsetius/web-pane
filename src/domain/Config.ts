@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { ZodError } from 'zod';
-import { configDefaults } from './configDefaults.js';
-import { fromZodError } from './functions/fromZodError.js';
-import { ConfigZodSchema, AppConfig } from './types/index.js';
+import { configDefaults } from '../configDefaults.js';
+import { fromZodError } from '../functions/fromZodError.js';
+import { ConfigZodSchema, AppConfig } from '../types/index.js';
 
 export class Config {
   public readonly data: AppConfig;

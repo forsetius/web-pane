@@ -1,6 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
 import { Lang } from '../types/index.js';
-import { App } from '../App.js';
+import { App } from '../domain/App.js';
 
 export interface LangCliArgs {
   lang: Lang;
