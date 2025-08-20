@@ -1,19 +1,20 @@
-import { TranslationStrings } from '../types/index.js';
-
 export default {
   error: {
     unknown: 'Unknown Error',
   },
   menu: {
+    app: 'Application',
     backward: 'Back',
     closeTab: 'Close (Ctrl+W)',
     english: 'English',
-    file: 'File',
     forceReload: 'Force Reload',
     forward: 'Forward',
     language: 'Language',
+    minimize: 'Minimize',
     navigation: 'Navigation',
+    nextView: 'Next View',
     polish: 'Polish',
+    previousView: 'Previous View',
     quit: 'Quit',
     reload: 'Reload',
     resetZoom: 'Reset Zoom',
@@ -23,4 +24,4 @@ export default {
     zoomIn: 'Zoom In',
     zoomOut: 'Zoom Out',
   },
-} as TranslationStrings;
+};

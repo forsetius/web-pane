@@ -6,16 +6,14 @@ import { TargetAppWindow } from '../types/index.js';
 export interface ShowCliArgs {
   id: string;
   url: string;
-  title: string;
   target: TargetAppWindow;
 }
 
 export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
   app,
 ) => ({
-  command: 'show <id> <url> [title] [target]',
-  describe:
-    'Show (or minimize if already shown) a webapp in a [target] window, optionally giving it [title]',
+  command: 'show <id> <url> [target]',
+  describe: 'Show (or minimize if already shown) a webapp in a [target] window',
   builder: (yargs: Argv) =>
     yargs
       .positional('id', {
@@ -27,11 +25,6 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
         type: 'string',
         describe: 'The webapp URL',
         demandOption: true,
-      })
-      .option('title', {
-        type: 'string',
-        describe: "The title of the webapp's window",
-        default: 'Web Pane',
       })
       .option('target', {
         type: 'string',
@@ -49,7 +42,7 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
         return true;
       }),
   handler: async (argv) => {
-    const { id, url, title, target } = argv;
+    const { id, url, target } = argv;
 
     const appWindow =
       app.browserWindows.pool.get(target) ??
@@ -65,6 +58,6 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
       return;
     }
 
-    await appWindow.showView(id, url, title);
+    appWindow.showView(id, await appWindow.getOrCreateView(id, url));
   },
 });

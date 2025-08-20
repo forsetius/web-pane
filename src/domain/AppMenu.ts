@@ -13,8 +13,15 @@ export class AppMenu {
   public build(lang: Lang) {
     const template: MenuItemConstructorOptions[] = [
       {
-        label: this.translations[lang].file,
+        label: this.translations[lang].app,
         submenu: [
+          {
+            label: this.translations[lang].minimize,
+            accelerator: 'Alt+Down',
+            click: () => {
+              this.minimize();
+            },
+          },
           {
             role: 'close',
             accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Ctrl+F4',
@@ -47,16 +54,20 @@ export class AppMenu {
           },
           { type: 'separator' },
           {
-            role: 'toggleDevTools',
-            label: this.translations[lang].toggleDevTools,
+            role: 'resetZoom',
+            label: this.translations[lang].resetZoom,
+            accelerator: process.platform === 'darwin' ? 'Cmd+0' : 'Ctrl+0',
           },
-          { type: 'separator' },
-          { role: 'resetZoom', label: this.translations[lang].resetZoom },
-          { role: 'zoomIn', label: this.translations[lang].zoomIn },
-          { role: 'zoomOut', label: this.translations[lang].zoomOut },
           {
-            role: 'togglefullscreen',
-            label: this.translations[lang].toggleFullscreen,
+            role: 'zoomIn',
+            label: this.translations[lang].zoomIn,
+            accelerator:
+              process.platform === 'darwin' ? 'Cmd+Shift+=' : 'Ctrl+Shift+=',
+          },
+          {
+            role: 'zoomOut',
+            label: this.translations[lang].zoomOut,
+            accelerator: process.platform === 'darwin' ? 'Cmd+-' : 'Ctrl+-',
           },
         ],
       },
@@ -75,6 +86,24 @@ export class AppMenu {
             accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Alt+Right',
             click: () => {
               this.goForward();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: this.translations[lang].nextView,
+            accelerator: process.platform === 'darwin' ? 'Cmd+Tab' : 'Ctrl+Tab',
+            click: () => {
+              this.switchView(true);
+            },
+          },
+          {
+            label: this.translations[lang].previousView,
+            accelerator:
+              process.platform === 'darwin'
+                ? 'Cmd+Shift+Tab'
+                : 'Ctrl+Shift+Tab',
+            click: () => {
+              this.switchView(false);
             },
           },
         ],
@@ -123,6 +152,15 @@ export class AppMenu {
     if (viewHistory?.canGoForward()) viewHistory.goForward();
   }
 
+  private minimize() {
+    const appWindow = this.app.browserWindows.getActive();
+    if (!appWindow) return;
+
+    if (!appWindow.window.isMinimized()) {
+      appWindow.window.minimize();
+    }
+  }
+
   private reload() {
     const appWindow = this.app.browserWindows.getActive();
     if (!appWindow) return;
@@ -135,5 +173,12 @@ export class AppMenu {
     if (!appWindow) return;
 
     appWindow.getCurrentView()?.webContents.reloadIgnoringCache();
+  }
+
+  private switchView(goForward: boolean) {
+    const appWindow = this.app.browserWindows.getActive();
+    if (!appWindow) return;
+
+    appWindow.switchView(goForward);
   }
 }

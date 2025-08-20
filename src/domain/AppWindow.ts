@@ -12,16 +12,17 @@ export class AppWindow {
     return this.views.get(this.currentViewKey ?? '');
   }
 
-  public async showView(appId: AppId, url: string, title: string) {
+  public async getOrCreateView(appId: AppId, url: string) {
+    return this.views.get(appId) ?? (await this.createView(appId, url));
+  }
+
+  public showView(appId: AppId, newView: WebContentsView) {
     if (this.currentViewKey) {
       const oldView = this.views.get(this.currentViewKey);
       if (oldView) {
         this.window.contentView.removeChildView(oldView);
       }
     }
-
-    const newView =
-      this.views.get(appId) ?? (await this.createView(appId, url));
 
     this.window.contentView.addChildView(newView);
     const [width, height] = this.window.getContentSize();
@@ -33,9 +34,9 @@ export class AppWindow {
     });
 
     this.currentViewKey = appId;
-    this.window.setTitle(title);
     this.window.show();
     this.window.focus();
+    newView.webContents.focus();
   }
 
   public async createView(appId: AppId, url: string): Promise<WebContentsView> {
@@ -50,5 +51,19 @@ export class AppWindow {
     await webContentsView.webContents.loadURL(url);
 
     return webContentsView;
+  }
+
+  public switchView(goForward = true) {
+    if (this.views.size < 2) return;
+
+    const arr = Array.from(this.views);
+    const idx = arr.findIndex(([k]) => k === this.currentViewKey);
+    if (idx === -1) return;
+
+    const [appId, view] = goForward
+      ? arr[(idx + 1) % arr.length]!
+      : arr[(idx - 1 + arr.length) % arr.length]!;
+
+    this.showView(appId, view);
   }
 }
