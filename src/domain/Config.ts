@@ -1,23 +1,22 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ConfigZodSchema } from './types/ConfigZodSchema.js';
 import { ZodError } from 'zod';
-import { fromZodError } from './functions/fromZodError.js';
-import { configDefaults } from './configDefaults.js';
-import { WindowConfig } from './types/WindowConfig.js';
+import { configDefaults } from '../configDefaults.js';
+import { fromZodError } from '../functions/fromZodError.js';
+import { ConfigZodSchema, AppConfig } from '../types/index.js';
 
 export class Config {
-  public readonly data: WindowConfig;
+  public readonly data: AppConfig;
 
   public constructor() {
     this.data = this.loadDefaults();
   }
 
-  public loadDefaults(): WindowConfig {
+  public loadDefaults(): AppConfig {
     const configPath = this.ensureConfigExists();
     const raw = fs.readFileSync(configPath, 'utf-8');
-    const parsed = JSON.parse(raw) as Partial<WindowConfig>;
+    const parsed = JSON.parse(raw) as Partial<AppConfig>;
 
     try {
       return ConfigZodSchema.parse(parsed);
@@ -34,12 +33,10 @@ export class Config {
     const configDirectory = this.getConfigDirectory();
     const configPath = this.getConfigPath();
 
-    // katalog (0700)
     if (!fs.existsSync(configDirectory)) {
       fs.mkdirSync(configDirectory, { recursive: true, mode: 0o700 });
     }
 
-    // plik (0600) z domyślną treścią
     if (!fs.existsSync(configPath)) {
       const json = JSON.stringify(configDefaults, null, 2) + '\n';
       fs.writeFileSync(configPath, json, { mode: 0o600, flag: 'wx' });

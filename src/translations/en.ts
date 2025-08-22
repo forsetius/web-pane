@@ -1,0 +1,27 @@
+export default {
+  error: {
+    unknown: 'Unknown Error',
+  },
+  menu: {
+    app: 'Application',
+    backward: 'Back',
+    closeTab: 'Close (Ctrl+W)',
+    english: 'English',
+    forceReload: 'Force Reload',
+    forward: 'Forward',
+    language: 'Language',
+    minimize: 'Minimize',
+    navigation: 'Navigation',
+    nextView: 'Next View',
+    polish: 'Polish',
+    previousView: 'Previous View',
+    quit: 'Quit',
+    reload: 'Reload',
+    resetZoom: 'Reset Zoom',
+    toggleDevTools: 'Toggle Developer Tools',
+    toggleFullscreen: 'Toggle Fullscreen',
+    view: 'View',
+    zoomIn: 'Zoom In',
+    zoomOut: 'Zoom Out',
+  },
+};

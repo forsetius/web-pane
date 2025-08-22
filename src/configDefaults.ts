@@ -1,17 +1,17 @@
-import { TargetWindow } from './types/TargetWindow.js';
-import { WindowConfig } from './types/WindowConfig.js';
+import { AppConfig, Lang, TargetAppWindow } from './types/index.js';
 
-export const configDefaults: WindowConfig = {
-  defaultTarget: TargetWindow.RIGHT,
+export const configDefaults: AppConfig = {
+  lang: Lang.PL,
+  defaultTarget: TargetAppWindow.RIGHT,
   windows: {
-    [TargetWindow.LEFT]: {
+    [TargetAppWindow.LEFT]: {
       x: 0,
       y: 0,
       width: 720,
       height: 980,
       alwaysOnTop: true,
     },
-    [TargetWindow.RIGHT]: {
+    [TargetAppWindow.RIGHT]: {
       x: 1200,
       y: 0,
       width: 720,
