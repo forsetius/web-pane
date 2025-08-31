@@ -19,10 +19,11 @@
     "clean": "rimraf dist release",
     "clean:full": "npm find-dupes && npm dedupe && npm prune && npm run clean",
     "compile": "tsc -p tsconfig.json",
-    "dist": "npm run compile && electron-builder",
-    "dist:win": "docker run --rm -it -e CI=false -v \"$PWD\":/project -w /project -v \"$HOME/.cache/electron\":/root/.cache/electron -v \"$HOME/.cache/electron-builder\":/root/.cache/electron-builder electronuserland/builder:wine bash -lc 'npm run compile && npx electron-builder -w nsis -w portable --x64 --publish=never'",
-    "dist:mac": "npm run compile && electron-builder -m --publish=never",
-    "dist:linux": "npm run compile && electron-builder -l --publish=never"
+    "dist:release": "electron-builder --publish=always",
+    "dist:ci": "electron-builder --publish=never",
+    "dist:ci:win": "docker run --rm -it -e CI=false -v \"$PWD\":/project -w /project -v \"$HOME/.cache/electron\":/root/.cache/electron -v \"$HOME/.cache/electron-builder\":/root/.cache/electron-builder electronuserland/builder:wine bash -lc 'npm run compile && npx electron-builder -w nsis -w portable --x64 --publish=never'",
+    "dist:ci:mac": "electron-builder -m --publish=never",
+    "dist:ci:linux": "electron-builder -l --publish=never"
   },
   "dependencies": {
     "yargs": "^18.0.0",
