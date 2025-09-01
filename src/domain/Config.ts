@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { app } from 'electron';
 import { ZodError } from 'zod';
 import { configDefaults } from '../configDefaults.js';
 import { fromZodError } from '../functions/fromZodError.js';
@@ -30,12 +30,7 @@ export class Config {
   }
 
   private ensureConfigExists(): string {
-    const configDirectory = this.getConfigDirectory();
     const configPath = this.getConfigPath();
-
-    if (!fs.existsSync(configDirectory)) {
-      fs.mkdirSync(configDirectory, { recursive: true, mode: 0o700 });
-    }
 
     if (!fs.existsSync(configPath)) {
       const json = JSON.stringify(configDefaults, null, 2) + '\n';
@@ -45,15 +40,8 @@ export class Config {
     return configPath;
   }
 
-  private getConfigDirectory(): string {
-    const xdg = process.env['XDG_CONFIG_HOME'];
-    return xdg?.trim()
-      ? path.join(xdg, 'web-pane')
-      : path.join(os.homedir(), '.config', 'web-pane');
-  }
-
   private getConfigPath(): string {
-    return path.join(this.getConfigDirectory(), 'config.json');
+    return path.join(app.getPath('userData'), 'config.json');
   }
 
   public save() {

@@ -17,11 +17,35 @@ const importSyncDefault = <T>(path: string): T => {
 
 export class App {
   public readonly hasLock: boolean;
-  public readonly config: Config;
   public readonly electron: typeof app;
-  public readonly appMenu: AppMenu;
-  public readonly browserWindows: BrowserWindowPool;
+  public _appMenu: AppMenu | undefined = undefined;
+  public _config: Config | undefined = undefined;
+  public _browserWindows: BrowserWindowPool | undefined = undefined;
   private readonly translations: Record<Lang, TranslationStrings>;
+
+  get appMenu() {
+    if (!this._appMenu) {
+      throw new Error('App not initialized');
+    }
+
+    return this._appMenu;
+  }
+
+  get config() {
+    if (!this._config) {
+      throw new Error('App not initialized');
+    }
+
+    return this._config;
+  }
+
+  get browserWindows() {
+    if (!this._browserWindows) {
+      throw new Error('App not initialized');
+    }
+
+    return this._browserWindows;
+  }
 
   public constructor() {
     const rawArgv = process.argv.slice(process.defaultApp ? 2 : 1);
@@ -39,9 +63,13 @@ export class App {
     });
     this.translations = this.fetchTranslations();
 
-    this.config = new Config();
-    this.browserWindows = new BrowserWindowPool(this.config);
-    this.appMenu = new AppMenu(
+    this.electron = app;
+  }
+
+  public init() {
+    this._config = new Config();
+    this._browserWindows = new BrowserWindowPool(this._config);
+    this._appMenu = new AppMenu(
       Object.fromEntries(
         (Object.entries(this.translations) as [Lang, TranslationStrings][]).map(
           ([lang, t]) => [lang, t.menu] as const,
@@ -49,7 +77,6 @@ export class App {
       ) as Record<Lang, TranslationStrings['menu']>,
       this,
     );
-    this.electron = app;
   }
 
   public handleInvocation(argv: string[]) {
