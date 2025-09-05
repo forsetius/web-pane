@@ -18,7 +18,7 @@
     "clean": "rimraf dist release",
     "clean:full": "npm find-dupes && npm dedupe && npm prune && npm run clean",
       "compile:app": "tsc -p tsconfig.json",
-      "compile:preload": "tsc -p tsconfig.preload.json && find dist/preload -name '*.js' -maxdepth 1 -exec bash -c 'for f; do mv \"$f\" \"${f%.js}.cjs\"; done' _ {} +",
+      "compile:preload": "tsc -p tsconfig.preload.json && find dist/preload -maxdepth 1 -name '*.js' -exec bash -c 'for f; do mv \"$f\" \"${f%.js}.cjs\"; done' _ {} +",
     "compile": "npm run compile:preload && npm run compile:app && cp -r src/renderer/*.html dist/renderer",
 
     "icons": "build/bin/make-icons.sh",
@@ -36,20 +36,20 @@
     "zod-validation-error": "^4.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
+    "@eslint/js": "^9.35.0",
     "@tsconfig/node24": "^24.0.1",
     "@tsconfig/strictest": "^2.0.5",
-    "@types/node": "^24.3.0",
+    "@types/node": "^24.3.1",
     "@types/yargs": "^17.0.33",
-    "electron": "^37.4.0",
+    "electron": "^38.0.0",
     "electron-builder": "^26.0.20",
     "electron-updater": "^6.6.8",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.41.0"
+    "typescript-eslint": "^8.42.0"
   }
 }
