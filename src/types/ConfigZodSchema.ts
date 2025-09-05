@@ -15,4 +15,9 @@ export const ConfigZodSchema = z.object({
       alwaysOnTop: z.boolean(),
     }),
   ),
+  ui: z.object({
+    showWindowFrame: z.boolean(),
+    showAppMenu: z.boolean(),
+    showInWindowList: z.boolean(),
+  }),
 });

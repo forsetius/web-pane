@@ -7,9 +7,12 @@ import { AppMenu } from './AppMenu.js';
 import { BrowserWindowPool } from './BrowserWindowPool.js';
 import { Config } from './Config.js';
 import { langCommand, showCommand } from '../cliCommands/index.js';
-import { Lang, TranslationStrings } from '../types/index.js';
+import { Lang } from '../types/Lang.js';
+import type { StrictRecord } from '../types/types.js';
+import type { TranslationStrings } from '../types/TranslationStrings.js';
+import { PreferencesWindow } from './PreferencesWindow.js';
+import * as object from '../utils/object.js';
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 const importSyncDefault = <T>(path: string): T => {
   const require = createRequire(import.meta.url);
   return (require(path) as { default: T }).default;
@@ -21,7 +24,10 @@ export class App {
   public _appMenu: AppMenu | undefined = undefined;
   public _config: Config | undefined = undefined;
   public _browserWindows: BrowserWindowPool | undefined = undefined;
-  private readonly translations: Record<Lang, TranslationStrings>;
+  private readonly translations: StrictRecord<Lang, TranslationStrings>;
+  public readonly appWindows: AppWindows = {
+    preferences: undefined,
+  };
 
   get appMenu() {
     if (!this._appMenu) {
@@ -67,16 +73,24 @@ export class App {
   }
 
   public init() {
+    const t = this.translations;
     this._config = new Config();
     this._browserWindows = new BrowserWindowPool(this._config);
     this._appMenu = new AppMenu(
-      Object.fromEntries(
-        (Object.entries(this.translations) as [Lang, TranslationStrings][]).map(
-          ([lang, t]) => [lang, t.menu] as const,
-        ),
-      ) as Record<Lang, TranslationStrings['menu']>,
+      object.map(t, ([lang, t]) => [lang, t.menu] as const),
       this,
     );
+    this.appWindows.preferences = new PreferencesWindow(
+      this._config,
+      object.map(t, ([lang, ts]) => [lang, ts.windows.preferences] as const),
+      (ui) => {
+        this.browserWindows.applyUi(ui);
+      },
+      (ui) => {
+        this.browserWindows.recreateWindows(ui);
+      },
+    );
+    app.on('before-quit', () => this.appWindows.preferences?.setQuitting(true));
   }
 
   public handleInvocation(argv: string[]) {
@@ -89,7 +103,7 @@ export class App {
         const out =
           msg ||
           err.message ||
-          this.translations[this.config.data.lang].error.unknown;
+          this.translations[this.config.get('lang')].error.unknown;
         console.error(out);
 
         app.exit(1);
@@ -100,13 +114,12 @@ export class App {
   }
 
   public changeLanguage(lang: Lang) {
-    this.config.data.lang = lang;
-    this.config.save();
+    this.config.save({ lang });
 
     this.appMenu.build(lang);
   }
 
-  private fetchTranslations(): Record<Lang, TranslationStrings> {
+  private fetchTranslations(): StrictRecord<Lang, TranslationStrings> {
     const translations = Object.fromEntries(
       fs
         .globSync(`${import.meta.dirname}/../translations/*.js`)
@@ -129,6 +142,23 @@ export class App {
       );
     }
 
-    return translations;
+    return translations as StrictRecord<Lang, TranslationStrings>;
   }
+
+  public toggleFocusedDevTools(detach = true): void {
+    const activeView = this.appWindows.preferences?.window; // dopasuj do swojej klasy
+    const wc = activeView?.webContents;
+
+    if (!wc) return;
+
+    if (wc.isDevToolsOpened()) {
+      wc.closeDevTools();
+    } else {
+      wc.openDevTools({ mode: detach ? 'detach' : 'right' });
+    }
+  }
+}
+
+interface AppWindows {
+  preferences: PreferencesWindow | undefined;
 }

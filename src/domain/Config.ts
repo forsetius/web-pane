@@ -1,16 +1,19 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { deepmergeIntoCustom } from 'deepmerge-ts';
 import { app } from 'electron';
 import { ZodError } from 'zod';
 import { configDefaults } from '../configDefaults.js';
-import { fromZodError } from '../functions/fromZodError.js';
-import { ConfigZodSchema, AppConfig } from '../types/index.js';
+import { ConfigZodSchema } from '../types/ConfigZodSchema.js';
+import type { AppConfig } from '../types/AppConfig.js';
+import type * as CT from '../types/ConfigTypes.js';
+import { fromZodError } from '../utils/index.js';
 
 export class Config {
-  public readonly data: AppConfig;
+  private readonly store: AppConfig;
 
   public constructor() {
-    this.data = this.loadDefaults();
+    this.store = this.loadDefaults();
   }
 
   public loadDefaults(): AppConfig {
@@ -30,7 +33,7 @@ export class Config {
   }
 
   private ensureConfigExists(): string {
-    const configPath = this.getConfigPath();
+    const configPath = this.getConfigFilePath();
 
     if (!fs.existsSync(configPath)) {
       const json = JSON.stringify(configDefaults, null, 2) + '\n';
@@ -40,15 +43,53 @@ export class Config {
     return configPath;
   }
 
-  private getConfigPath(): string {
+  private getConfigFilePath(): string {
     return path.join(app.getPath('userData'), 'config.json');
   }
 
-  public save() {
+  public get<P extends CT.DotPath<AppConfig>>(
+    key: P,
+  ): CT.PathValue<AppConfig, P> {
+    const segments = (key as string).split('.');
+    let node: unknown = this.store;
+
+    for (const seg of segments) {
+      const maybeIndex = Number(seg);
+      const access: string | number =
+        Number.isInteger(maybeIndex) && maybeIndex.toString() === seg
+          ? maybeIndex
+          : seg;
+
+      if (
+        node == null ||
+        !(access in (node as Record<string | number, unknown>))
+      ) {
+        throw new Error(`Missing config at "${key}" (stopped at "${seg}")`);
+      }
+      node = (node as Record<string | number, unknown>)[access];
+    }
+
+    return node as CT.PathValue<AppConfig, P>;
+  }
+
+  public save(patch?: CT.DeepPartial<AppConfig>): void {
+    if (patch) {
+      mergeIntoReplaceArrays(this.store, patch);
+    }
+
     fs.writeFileSync(
-      this.getConfigPath(),
-      JSON.stringify(this.data, null, 2) + '\n',
+      this.getConfigFilePath(),
+      JSON.stringify(this.store, null, 2) + '\n',
       { mode: 0o600 },
     );
   }
 }
+
+const mergeIntoReplaceArrays = deepmergeIntoCustom({
+  mergeArrays: (mutTarget, values) => {
+    const last = values[values.length - 1];
+    if (!last) return;
+
+    mutTarget.value = last.slice();
+  },
+});

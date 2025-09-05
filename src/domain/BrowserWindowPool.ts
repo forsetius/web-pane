@@ -1,7 +1,9 @@
 import { BrowserWindow } from 'electron';
 import { AppWindow } from './AppWindow.js';
 import { Config } from './Config.js';
-import { TargetAppWindow, WindowGeometry } from '../types/index.js';
+import { TargetAppWindow } from '../types/TargetAppWindow.js';
+import type { AppUiConfig } from '../types/AppConfig.js';
+import type { WindowGeometry } from '../types/WindowGeometry.js';
 
 export class BrowserWindowPool {
   public readonly pool = new Map<TargetAppWindow, AppWindow>(); // target -> window state
@@ -14,14 +16,18 @@ export class BrowserWindowPool {
     );
   }
 
-  public create(target: TargetAppWindow, geometry: WindowGeometry) {
+  public create(
+    target: TargetAppWindow,
+    ui: AppUiConfig,
+    geometry: WindowGeometry,
+  ) {
     const window = new BrowserWindow({
       ...geometry,
       title: `WebPane – ${target}`,
       show: true,
-      autoHideMenuBar: true,
-      frame: false,
-      type: 'utility',
+      autoHideMenuBar: !ui.showAppMenu,
+      frame: ui.showWindowFrame,
+      type: ui.showInWindowList ? 'application' : 'utility',
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: true,
@@ -63,7 +69,29 @@ export class BrowserWindowPool {
     const [x, y] = window.getPosition() as [number, number];
     const alwaysOnTop = window.isAlwaysOnTop();
 
-    this.config.data.windows[target] = { x, y, width, height, alwaysOnTop };
+    this.config.save({
+      windows: { [target]: { x, y, width, height, alwaysOnTop } },
+    });
+  }
+
+  public applyUi(ui: AppUiConfig) {
+    for (const browserWindow of this.pool.values()) {
+      browserWindow.window.setAutoHideMenuBar(!ui.showAppMenu);
+      browserWindow.window.setMenuBarVisibility(ui.showAppMenu);
+      browserWindow.window.setSkipTaskbar(!ui.showInWindowList);
+    }
+  }
+
+  public recreateWindows(ui: AppUiConfig) {
     this.config.save();
+
+    for (const browserWindow of this.pool.values()) {
+      browserWindow.window.close();
+    }
+    Object.entries(this.config.get('windows')).forEach(
+      ([name, windowState]) => {
+        this.create(name as TargetAppWindow, ui, windowState);
+      },
+    );
   }
 }

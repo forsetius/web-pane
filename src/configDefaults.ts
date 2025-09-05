@@ -1,4 +1,6 @@
-import { AppConfig, Lang, TargetAppWindow } from './types/index.js';
+import { Lang } from './types/Lang.js';
+import { TargetAppWindow } from './types/TargetAppWindow.js';
+import type { AppConfig } from './types/AppConfig.js';
 
 export const configDefaults: AppConfig = {
   lang: Lang.PL,
@@ -18,5 +20,10 @@ export const configDefaults: AppConfig = {
       height: 980,
       alwaysOnTop: true,
     },
+  },
+  ui: {
+    showWindowFrame: true,
+    showAppMenu: true,
+    showInWindowList: true,
   },
 };

@@ -15,10 +15,13 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "icons": "build/bin/make-icons.sh",
     "clean": "rimraf dist release",
     "clean:full": "npm find-dupes && npm dedupe && npm prune && npm run clean",
-    "compile": "tsc -p tsconfig.json",
+      "compile:app": "tsc -p tsconfig.json",
+      "compile:preload": "tsc -p tsconfig.preload.json && find dist/preload -name '*.js' -maxdepth 1 -exec bash -c 'for f; do mv \"$f\" \"${f%.js}.cjs\"; done' _ {} +",
+    "compile": "npm run compile:preload && npm run compile:app && cp -r src/renderer/*.html dist/renderer",
+
+    "icons": "build/bin/make-icons.sh",
     "dist:release": "electron-builder --publish=always",
     "dist:ci": "electron-builder --publish=never",
     "dist:ci:win": "docker run --rm -it -e CI=false -v \"$PWD\":/project -w /project -v \"$HOME/.cache/electron\":/root/.cache/electron -v \"$HOME/.cache/electron-builder\":/root/.cache/electron-builder electronuserland/builder:wine bash -lc 'npm run compile && npx electron-builder -w nsis -w portable --x64 --publish=never'",
@@ -26,6 +29,8 @@
     "dist:ci:linux": "electron-builder -l --publish=never"
   },
   "dependencies": {
+    "bootstrap": "^5.3.8",
+    "deepmerge-ts": "^7.1.5",
     "yargs": "^18.0.0",
     "zod": "^4.1.5",
     "zod-validation-error": "^4.0.1"

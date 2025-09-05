@@ -1,7 +1,7 @@
-import { Argv, CommandModule } from 'yargs';
+import type { Argv, CommandModule } from 'yargs';
 import { configDefaults } from '../configDefaults.js';
 import { App } from '../domain/App.js';
-import { TargetAppWindow } from '../types/index.js';
+import { TargetAppWindow } from '../types/TargetAppWindow.js';
 
 export interface ShowCliArgs {
   id?: string | undefined;
@@ -53,7 +53,11 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
 
     const appWindow =
       app.browserWindows.pool.get(target) ??
-      app.browserWindows.create(target, app.config.data.windows[target]);
+      app.browserWindows.create(
+        target,
+        app.config.get('ui'),
+        app.config.get(`windows.${target}`),
+      );
 
     if (appWindow.currentViewKey === id) {
       if (appWindow.window.isMinimized()) {
