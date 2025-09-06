@@ -1,11 +1,11 @@
 import type { Lang } from './Lang.js';
 import type { TargetAppWindow } from './TargetAppWindow.js';
-import type { WindowGeometry } from './WindowGeometry.js';
+import type { WindowState } from './WindowState.js';
 
 export interface AppConfig {
   defaultTarget: TargetAppWindow;
   lang: Lang;
-  windows: Record<TargetAppWindow, WindowGeometry>;
+  windows: Record<TargetAppWindow, WindowState>;
   ui: AppUiConfig;
 }
 

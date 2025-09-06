@@ -1,4 +1,5 @@
-export interface WindowGeometry {
+export interface WindowState {
+  visible: boolean;
   x: number;
   y: number;
   width: number;

@@ -13,10 +13,10 @@ export class Config {
   private readonly store: AppConfig;
 
   public constructor() {
-    this.store = this.loadDefaults();
+    this.store = this.load();
   }
 
-  public loadDefaults(): AppConfig {
+  public load(): AppConfig {
     const configPath = this.ensureConfigExists();
     const raw = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(raw) as Partial<AppConfig>;

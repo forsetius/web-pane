@@ -3,7 +3,6 @@ import { AppWindow } from './AppWindow.js';
 import { Config } from './Config.js';
 import { TargetAppWindow } from '../types/TargetAppWindow.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
-import type { WindowGeometry } from '../types/WindowGeometry.js';
 
 export class BrowserWindowPool {
   public readonly pool = new Map<TargetAppWindow, AppWindow>(); // target -> window state
@@ -16,11 +15,9 @@ export class BrowserWindowPool {
     );
   }
 
-  public create(
-    target: TargetAppWindow,
-    ui: AppUiConfig,
-    geometry: WindowGeometry,
-  ) {
+  public create(target: TargetAppWindow) {
+    const geometry = this.config.get(`windows`)[target];
+    const ui = this.config.get('ui');
     const window = new BrowserWindow({
       ...geometry,
       title: `WebPane – ${target}`,
@@ -38,7 +35,15 @@ export class BrowserWindowPool {
       this.persistWindowGeometry(target);
     };
 
-    window.on('closed', () => this.pool.delete(target));
+    window.on('closed', () => {
+      const appWindow = this.pool.get(target);
+      if (!appWindow) return;
+
+      this.config.save({
+        windows: { [target]: { visible: false } },
+      });
+      this.pool.delete(target);
+    });
     window.on('resize', () => {
       const appWindow = this.pool.get(target);
       if (!appWindow?.currentViewKey) return;
@@ -78,19 +83,19 @@ export class BrowserWindowPool {
     for (const browserWindow of this.pool.values()) {
       browserWindow.window.setAutoHideMenuBar(!ui.showAppMenu);
       browserWindow.window.setMenuBarVisibility(ui.showAppMenu);
-      browserWindow.window.setSkipTaskbar(!ui.showInWindowList);
     }
   }
 
-  public recreateWindows(ui: AppUiConfig) {
-    this.config.save();
-
+  public recreateWindows() {
     for (const browserWindow of this.pool.values()) {
       browserWindow.window.close();
     }
+
     Object.entries(this.config.get('windows')).forEach(
       ([name, windowState]) => {
-        this.create(name as TargetAppWindow, ui, windowState);
+        if (windowState.visible) {
+          this.create(name as TargetAppWindow);
+        }
       },
     );
   }

@@ -52,12 +52,7 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
     const id = argv.id ?? makeId(url);
 
     const appWindow =
-      app.browserWindows.pool.get(target) ??
-      app.browserWindows.create(
-        target,
-        app.config.get('ui'),
-        app.config.get(`windows.${target}`),
-      );
+      app.browserWindows.pool.get(target) ?? app.browserWindows.create(target);
 
     if (appWindow.currentViewKey === id) {
       if (appWindow.window.isMinimized()) {

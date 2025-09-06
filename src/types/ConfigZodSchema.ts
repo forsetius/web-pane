@@ -8,6 +8,7 @@ export const ConfigZodSchema = z.object({
   windows: z.record(
     z.enum(TargetAppWindow),
     z.object({
+      visible: z.boolean(),
       x: z.int().nonnegative(),
       y: z.int().nonnegative(),
       width: z.int().nonnegative(),

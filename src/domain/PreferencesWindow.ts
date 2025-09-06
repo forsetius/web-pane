@@ -11,6 +11,11 @@ const __dirname = dirname(__filename);
 
 export class PreferencesWindow {
   public window?: BrowserWindow | undefined;
+  private isRecreateNeeded = {
+    showWindowFrame: true,
+    showAppMenu: false,
+    showInWindowList: process.platform === 'linux',
+  };
   private isQuitting = false;
   private ipcRegistered = false;
 
@@ -18,7 +23,7 @@ export class PreferencesWindow {
     private readonly config: Config,
     private readonly translations: Record<Lang, PreferencesWindowTranslations>,
     private readonly applyUiFn: (ui: AppUiConfig) => void,
-    private readonly recreateFn: (ui: AppUiConfig) => void,
+    private readonly recreateFn: () => void,
   ) {
     this.registerIpc();
   }
@@ -43,6 +48,7 @@ export class PreferencesWindow {
       resizable: false,
       minimizable: false,
       maximizable: false,
+      alwaysOnTop: true,
       autoHideMenuBar: true,
       show: false,
       frame: false,
@@ -79,22 +85,19 @@ export class PreferencesWindow {
     ipcMain.handle('prefs:get-ui', () => this.config.get('ui'));
 
     ipcMain.on('prefs:set-ui', (_e, patch: Partial<AppUiConfig>) => {
-      const before = this.config.get('ui');
       this.config.save({ ui: patch });
       const after = this.config.get('ui');
 
-      this.applyUiFn(after);
-
-      if (before.showWindowFrame !== this.config.get('ui.showWindowFrame')) {
-        this.recreateFn(after);
-      }
-
       if (
-        process.platform === 'linux' &&
-        before.showInWindowList !== this.config.get('ui.showInWindowList')
+        Object.keys(patch).some(
+          (k) => this.isRecreateNeeded[k as keyof AppUiConfig],
+        )
       ) {
-        this.recreateFn(after);
+        this.recreateFn();
+        return;
       }
+
+      this.applyUiFn(after);
     });
 
     ipcMain.handle('i18n:t', (_e, key: keyof PreferencesWindowTranslations) => {

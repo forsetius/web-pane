@@ -7,6 +7,7 @@ export const configDefaults: AppConfig = {
   defaultTarget: TargetAppWindow.RIGHT,
   windows: {
     [TargetAppWindow.LEFT]: {
+      visible: false,
       x: 0,
       y: 0,
       width: 720,
@@ -14,6 +15,7 @@ export const configDefaults: AppConfig = {
       alwaysOnTop: true,
     },
     [TargetAppWindow.RIGHT]: {
+      visible: true,
       x: 1200,
       y: 0,
       width: 720,

@@ -56,6 +56,8 @@ export class App {
   public constructor() {
     const rawArgv = process.argv.slice(process.defaultApp ? 2 : 1);
 
+    app.commandLine.appendSwitch('log-level', '3');
+
     this.hasLock = app.requestSingleInstanceLock({ rawArgv });
     if (!this.hasLock) {
       app.quit();
@@ -86,8 +88,8 @@ export class App {
       (ui) => {
         this.browserWindows.applyUi(ui);
       },
-      (ui) => {
-        this.browserWindows.recreateWindows(ui);
+      () => {
+        this.browserWindows.recreateWindows();
       },
     );
     app.on('before-quit', () => this.appWindows.preferences?.setQuitting(true));

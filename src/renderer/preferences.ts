@@ -1,5 +1,5 @@
-import type { AppUiConfig, } from '../types/AppConfig.js';
-import type {  PreferencesWindowTranslations, } from '../types/TranslationStrings.js';
+import type { AppUiConfig } from '../types/AppConfig.js';
+import type { PreferencesWindowTranslations } from '../types/TranslationStrings.js';
 
 declare global {
   interface Window {
@@ -56,12 +56,12 @@ async function main() {
     window.close();
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('closeBtn');
-    btn?.addEventListener('click', () => {
-      window.close();
-    });
-  });
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   const btn = document.getElementById('closeBtn');
+  //   btn?.addEventListener('click', () => {
+  //     window.close();
+  //   });
+  // });
 }
 
 void main().catch(console.error);
