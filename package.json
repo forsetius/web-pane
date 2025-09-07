@@ -17,9 +17,10 @@
     "start": "electron .",
     "clean": "rimraf dist release",
     "clean:full": "npm find-dupes && npm dedupe && npm prune && npm run clean",
+      "compile:preload": "tsc -p tsconfig.preload.json",
       "compile:app": "tsc -p tsconfig.json",
-      "compile:preload": "tsc -p tsconfig.preload.json && find dist/preload -maxdepth 1 -name '*.js' -exec bash -c 'for f; do mv \"$f\" \"${f%.js}.cjs\"; done' _ {} +",
-    "compile": "npm run compile:preload && npm run compile:app && cp -r src/renderer/*.html dist/renderer",
+      "compile:post": "node dist/postCompile.js",
+    "compile": "npm run compile:preload && npm run compile:app && npm run compile:post",
 
     "icons": "build/bin/make-icons.sh",
     "dist:release": "electron-builder --publish=always",
