@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <title id="docTitle"></title>
+
+    <meta name="color-scheme" content="light dark">
+
+    <script>
+        (function () {
+            const mql = window.matchMedia('(prefers-color-scheme: dark)');
+            const apply = () => {
+                document.documentElement.setAttribute('data-bs-theme', mql.matches ? 'dark' : 'light');
+            };
+            apply();
+            if (typeof mql.addEventListener === 'function') {
+                mql.addEventListener('change', apply);
+            } else {
+                // Safari/legacy
+                mql.addListener(apply);
+            }
+        })();
+    </script>
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="../../assets/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 1rem; }
+        .hint { font-size: .875rem; color: var(--bs-secondary-color); }
+        .form-switch .form-check-input { width: 2.5em; height: 1.25em; }
+    </style>
+</head>
+
+<body class="bg-body-tertiary">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 id="title" class="h5 mb-4"></h1>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="showWindowFrame">
+                            <label class="form-check-label" for="showWindowFrame" id="showWindowFrameLabel"></label>
+                        </div>
+                    </div>
+                    <div class="hint mb-3" id="showWindowFrameHint"></div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="showAppMenu">
+                            <label class="form-check-label" for="showAppMenu" id="showAppMenuLabel"></label>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="showInWindowList">
+                            <label class="form-check-label" for="showInWindowList" id="showInWindowListLabel"></label>
+                        </div>
+                    </div>
+                    <div class="hint mb-3" id="showInWindowListHint"></div>
+                </div>
+
+                <div class="card-footer text-end">
+                    <button id="closeBtn" type="button" class="btn btn-danger btn-sm">
+                        ✕ <span id="closeBtnLabel"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="./preferences.js"></script>
+</body>
+</html>

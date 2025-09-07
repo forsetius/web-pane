@@ -1,6 +1,6 @@
-import { Argv, CommandModule } from 'yargs';
-import { Lang } from '../types/index.js';
+import type { Argv, CommandModule } from 'yargs';
 import { App } from '../domain/App.js';
+import { Lang } from '../types/Lang.js';
 
 export interface LangCliArgs {
   lang: Lang;
@@ -20,7 +20,6 @@ export const langCommand: (app: App) => CommandModule<object, LangCliArgs> = (
     }),
   handler: (argv) => {
     app.changeLanguage(argv.lang);
-    console.log(`Language set to: ${argv.lang}`);
 
     app.electron.exit(0);
   },

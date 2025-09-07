@@ -1,13 +1,14 @@
 import { Menu, MenuItemConstructorOptions } from 'electron';
 import { App } from './App.js';
-import { Lang, TranslationStrings } from '../types/index.js';
+import { Lang } from '../types/Lang.js';
+import type { TranslationStrings } from '../types/TranslationStrings.js';
 
 export class AppMenu {
   public constructor(
     private readonly translations: Record<Lang, TranslationStrings['menu']>,
     private readonly app: App,
   ) {
-    this.build(app.config.data.lang);
+    this.build(app.config.get('lang'));
   }
 
   public build(lang: Lang) {
@@ -69,6 +70,22 @@ export class AppMenu {
             label: this.translations[lang].zoomOut,
             accelerator: process.platform === 'darwin' ? 'Cmd+-' : 'Ctrl+-',
           },
+          { type: 'separator' },
+          {
+            label: this.translations[lang].preferences,
+            accelerator: 'F10',
+            click: () => {
+              void this.showPreferencesWindow();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: 'DevTools',
+            accelerator: 'F12',
+            click: () => {
+              this.app.toggleFocusedDevTools(true);
+            },
+          },
         ],
       },
       {
@@ -114,7 +131,7 @@ export class AppMenu {
           {
             label: this.translations[lang].polish,
             type: 'radio',
-            checked: this.app.config.data.lang === Lang.PL,
+            checked: this.app.config.get('lang') === Lang.PL,
             click: () => {
               this.changeLanguage(Lang.PL);
             },
@@ -122,7 +139,7 @@ export class AppMenu {
           {
             label: this.translations[lang].english,
             type: 'radio',
-            checked: this.app.config.data.lang === Lang.EN,
+            checked: this.app.config.get('lang') === Lang.EN,
             click: () => {
               this.changeLanguage(Lang.EN);
             },
@@ -173,6 +190,10 @@ export class AppMenu {
     if (!appWindow) return;
 
     appWindow.getCurrentView()?.webContents.reloadIgnoringCache();
+  }
+
+  private async showPreferencesWindow() {
+    await this.app.appWindows.preferences?.show();
   }
 
   private switchView(goForward: boolean) {

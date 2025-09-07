@@ -5,8 +5,15 @@
   ],
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
-
     "moduleResolution": "NodeNext",
+    "lib": [
+      "es2024",
+      "ESNext.Array",
+      "ESNext.Collection",
+      "ESNext.Iterator",
+      "ESNext.Promise",
+      "dom"
+    ],
     "outDir": "./dist",
     "baseUrl": "./",
     "checkJs": false,
@@ -20,8 +27,8 @@
     "rootDirs": ["./src", "./test"],
     "sourceMap": true
   },
-  "exclude": ["node_modules"],
-  "include": ["src/**/*.ts", "src/**/*.json", "test/**/*.ts"],
+  "include": ["src", "test"],
+  "exclude": ["node_modules", "src/preload/**/*.ts"],
   "ts-node": {
     "transpileOnly": true,
     "files": true,

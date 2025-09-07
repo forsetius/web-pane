@@ -14,6 +14,7 @@ export default {
     navigation: 'Nawigacja',
     nextView: 'Następny widok',
     polish: 'Polski',
+    preferences: 'Preferencje',
     previousView: 'Poprzedni widok',
     quit: 'Zakończ',
     reload: 'Przeładuj',
@@ -23,5 +24,15 @@ export default {
     view: 'Widok',
     zoomIn: 'Powiększ',
     zoomOut: 'Pomniejsz',
+  },
+  windows: {
+    preferences: {
+      title: 'Preferencje',
+      showAppMenu: 'Pokaż menu aplikacji',
+      showWindowFrame: 'Pokaż ramki okien',
+      windowReloadNeededHint: 'Zmiana tej opcji spowoduje odtworzenie okien.',
+      showInWindowList: 'Pokaż na liście okien',
+      close: 'Zamknij',
+    },
   },
 };

@@ -14,6 +14,7 @@ export default {
     navigation: 'Navigation',
     nextView: 'Next View',
     polish: 'Polish',
+    preferences: 'Preferences',
     previousView: 'Previous View',
     quit: 'Quit',
     reload: 'Reload',
@@ -23,5 +24,15 @@ export default {
     view: 'View',
     zoomIn: 'Zoom In',
     zoomOut: 'Zoom Out',
+  },
+  windows: {
+    preferences: {
+      title: 'Preferences',
+      showAppMenu: 'Show application menu',
+      showWindowFrame: 'Show window frame',
+      windowReloadNeededHint: 'Changing this will briefly recreate windows.',
+      showInWindowList: 'Show in window list',
+      close: 'Close',
+    },
   },
 };
