@@ -93,9 +93,8 @@ export class BrowsingWindowPool {
   public async recreateWindows() {
     const snapshot = this.snapshotState();
     this.pool.forEach((browserWindow) => {
-      browserWindow.window.close();
+      browserWindow.window.destroy();
     });
-
     await Promise.all(
       snapshot.windows.map(async (windowSnapshot) => {
         await this.restoreWindow(windowSnapshot);

@@ -11,13 +11,12 @@ const __dirname = dirname(__filename);
 
 export class PreferencesWindow {
   public window?: BrowserWindow | undefined;
-  private isRecreateNeeded = {
+  private doRecreate = {
     showWindowFrame: true,
     showAppMenu: false,
     showInWindowList: process.platform === 'linux',
   };
   private isQuitting = false;
-  private ipcRegistered = false;
 
   public constructor(
     private readonly config: Config,
@@ -80,8 +79,7 @@ export class PreferencesWindow {
   }
 
   private registerIpc(): void {
-    if (this.ipcRegistered) return;
-    this.ipcRegistered = true;
+    if (ipcMain.listenerCount('preferences:get') > 0) return;
 
     ipcMain.handle('prefs:get-ui', () => this.config.get('ui'));
 
@@ -90,9 +88,7 @@ export class PreferencesWindow {
       const after = this.config.get('ui');
 
       if (
-        Object.keys(patch).some(
-          (k) => this.isRecreateNeeded[k as keyof AppUiConfig],
-        )
+        Object.keys(patch).some((k) => this.doRecreate[k as keyof AppUiConfig])
       ) {
         void this.recreateFn();
         return;
