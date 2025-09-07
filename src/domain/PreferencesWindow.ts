@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, ipcMain, screen } from 'electron';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Config } from './Config.js';
@@ -41,10 +41,12 @@ export class PreferencesWindow {
   }
 
   private async createWindow(): Promise<void> {
-    this.window = new BrowserWindow({
+    const window = new BrowserWindow({
       width: 420,
       height: 280,
       resizable: false,
+      roundedCorners: true,
+      useContentSize: true,
       minimizable: false,
       maximizable: false,
       alwaysOnTop: true,
@@ -53,29 +55,66 @@ export class PreferencesWindow {
       show: false,
       frame: false,
       type: 'utility',
-      titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+      titleBarStyle: 'hidden',
       webPreferences: {
         contextIsolation: true,
+        enablePreferredSizeMode: true,
         nodeIntegration: false,
         preload: join(__dirname, '../preload/preferencesWindowPreload.cjs'),
         sandbox: false,
         webviewTag: false,
+        zoomFactor: 1,
       },
     });
-    await this.window.loadFile(
-      join(import.meta.dirname, '../renderer/preferences.html'),
+
+    window.webContents.on(
+      'preferred-size-changed',
+      (_ev, preferred: Electron.Size) => {
+        void this.fitToHeight(window, preferred.height);
+      },
     );
 
-    this.window.on('close', (e) => {
+    window.webContents.once('did-finish-load', () => {
+      try {
+        void this.fitToHeight(window);
+      } finally {
+        window.show();
+      }
+    });
+
+    window.on('close', (e) => {
       if (this.isQuitting) return;
 
       e.preventDefault();
       this.window?.hide();
     });
 
-    this.window.on('closed', () => {
+    window.on('closed', () => {
       this.window = undefined;
     });
+
+    await window.loadFile(
+      join(import.meta.dirname, '../renderer/preferences.html'),
+    );
+
+    this.window = window;
+  }
+
+  private async fitToHeight(window: BrowserWindow, desiredHeight?: number) {
+    const height =
+      desiredHeight ??
+      ((await window.webContents.executeJavaScript(
+        'Math.ceil(document.documentElement.scrollHeight)',
+      )) as number);
+    if (window.isDestroyed()) return;
+
+    const { workAreaSize } = screen.getDisplayMatching(window.getBounds());
+    const MARGIN = 40;
+    const MIN_H = 200;
+
+    const [contentW] = window.getContentSize();
+    const h = Math.max(MIN_H, Math.min(height, workAreaSize.height - MARGIN));
+    window.setContentSize(contentW ?? 400, h);
   }
 
   private registerIpc(): void {
