@@ -9,4 +9,7 @@ contextBridge.exposeInMainWorld('prefsAPI', {
   },
   t: (key: keyof PreferencesWindowTranslations): Promise<string> =>
     ipcRenderer.invoke('i18n:t', key),
+  info: {
+    platform: process.platform,
+  },
 });

@@ -1,11 +1,12 @@
 import { BrowserWindow } from 'electron';
-import { AppWindow } from './AppWindow.js';
+import { BrowsingWindow } from './BrowsingWindow.js';
 import { Config } from './Config.js';
-import { TargetAppWindow } from '../types/TargetAppWindow.js';
+import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
+import { AppSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
 
-export class BrowserWindowPool {
-  public readonly pool = new Map<TargetAppWindow, AppWindow>(); // target -> window state
+export class BrowsingWindowPool {
+  public readonly pool = new Map<TargetBrowsingWindow, BrowsingWindow>(); // target -> window state
 
   public constructor(private readonly config: Config) {}
 
@@ -15,7 +16,7 @@ export class BrowserWindowPool {
     );
   }
 
-  public create(target: TargetAppWindow) {
+  public createWindow(target: TargetBrowsingWindow) {
     const geometry = this.config.get(`windows`)[target];
     const ui = this.config.get('ui');
     const window = new BrowserWindow({
@@ -59,13 +60,16 @@ export class BrowserWindowPool {
     window.on('move', persistGeometry);
     window.on('always-on-top-changed', persistGeometry);
 
-    const appWindow = new AppWindow(window);
+    const appWindow = new BrowsingWindow(target, window);
+    this.config.save({
+      windows: { [target]: { visible: true } },
+    });
     this.pool.set(target, appWindow);
 
     return appWindow;
   }
 
-  public persistWindowGeometry(target: TargetAppWindow) {
+  private persistWindowGeometry(target: TargetBrowsingWindow) {
     const state = this.pool.get(target);
     if (!state) return;
 
@@ -86,17 +90,30 @@ export class BrowserWindowPool {
     }
   }
 
-  public recreateWindows() {
-    for (const browserWindow of this.pool.values()) {
+  public async recreateWindows() {
+    const snapshot = this.snapshotState();
+    this.pool.forEach((browserWindow) => {
       browserWindow.window.close();
-    }
+    });
 
-    Object.entries(this.config.get('windows')).forEach(
-      ([name, windowState]) => {
-        if (windowState.visible) {
-          this.create(name as TargetAppWindow);
-        }
-      },
+    await Promise.all(
+      snapshot.windows.map(async (windowSnapshot) => {
+        await this.restoreWindow(windowSnapshot);
+      }),
     );
+  }
+
+  private snapshotState(): AppSnapshot {
+    return {
+      windows: Array.from(
+        this.pool.values().map((window) => window.snapshotState()),
+      ),
+      focusedWindowId: this.getActive()?.name,
+    };
+  }
+
+  private async restoreWindow(snapshot: WindowSnapshot) {
+    const window = this.createWindow(snapshot.id);
+    await window.restoreState(snapshot);
   }
 }

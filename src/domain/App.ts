@@ -4,7 +4,7 @@ import { createRequire } from 'module';
 import { app } from 'electron';
 import yargs from 'yargs/yargs';
 import { AppMenu } from './AppMenu.js';
-import { BrowserWindowPool } from './BrowserWindowPool.js';
+import { BrowsingWindowPool } from './BrowsingWindowPool.js';
 import { Config } from './Config.js';
 import { langCommand, showCommand } from '../cliCommands/index.js';
 import { Lang } from '../types/Lang.js';
@@ -23,7 +23,7 @@ export class App {
   public readonly electron: typeof app;
   public _appMenu: AppMenu | undefined = undefined;
   public _config: Config | undefined = undefined;
-  public _browserWindows: BrowserWindowPool | undefined = undefined;
+  public _browserWindows: BrowsingWindowPool | undefined = undefined;
   private readonly translations: StrictRecord<Lang, TranslationStrings>;
   public readonly appWindows: AppWindows = {
     preferences: undefined,
@@ -77,7 +77,7 @@ export class App {
   public init() {
     const t = this.translations;
     this._config = new Config();
-    this._browserWindows = new BrowserWindowPool(this._config);
+    this._browserWindows = new BrowsingWindowPool(this._config);
     this._appMenu = new AppMenu(
       object.map(t, ([lang, t]) => [lang, t.menu] as const),
       this,
@@ -88,8 +88,8 @@ export class App {
       (ui) => {
         this.browserWindows.applyUi(ui);
       },
-      () => {
-        this.browserWindows.recreateWindows();
+      async () => {
+        await this.browserWindows.recreateWindows();
       },
     );
     app.on('before-quit', () => this.appWindows.preferences?.setQuitting(true));

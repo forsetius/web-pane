@@ -1,12 +1,12 @@
 import type { Argv, CommandModule } from 'yargs';
 import { configDefaults } from '../configDefaults.js';
 import { App } from '../domain/App.js';
-import { TargetAppWindow } from '../types/TargetAppWindow.js';
+import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
 
 export interface ShowCliArgs {
   id?: string | undefined;
   url: string;
-  target: TargetAppWindow;
+  target: TargetBrowsingWindow;
 }
 
 function makeId(url: string) {
@@ -35,7 +35,7 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
       .option('target', {
         type: 'string',
         describe: 'Target window',
-        choices: Object.values(TargetAppWindow),
+        choices: Object.values(TargetBrowsingWindow),
         default: configDefaults.defaultTarget,
       })
       .check((args) => {
@@ -52,7 +52,8 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
     const id = argv.id ?? makeId(url);
 
     const appWindow =
-      app.browserWindows.pool.get(target) ?? app.browserWindows.create(target);
+      app.browserWindows.pool.get(target) ??
+      app.browserWindows.createWindow(target);
 
     if (appWindow.currentViewKey === id) {
       if (appWindow.window.isMinimized()) {
@@ -64,6 +65,7 @@ export const showCommand: (app: App) => CommandModule<object, ShowCliArgs> = (
       return;
     }
 
-    appWindow.showView(id, await appWindow.getOrCreateView(id, url));
+    await appWindow.ensureView(id, url);
+    appWindow.displayView(id);
   },
 });

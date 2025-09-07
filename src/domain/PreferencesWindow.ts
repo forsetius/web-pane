@@ -23,7 +23,7 @@ export class PreferencesWindow {
     private readonly config: Config,
     private readonly translations: Record<Lang, PreferencesWindowTranslations>,
     private readonly applyUiFn: (ui: AppUiConfig) => void,
-    private readonly recreateFn: () => void,
+    private readonly recreateFn: () => Promise<void>,
   ) {
     this.registerIpc();
   }
@@ -50,6 +50,7 @@ export class PreferencesWindow {
       maximizable: false,
       alwaysOnTop: true,
       autoHideMenuBar: true,
+      modal: true,
       show: false,
       frame: false,
       type: 'utility',
@@ -93,7 +94,7 @@ export class PreferencesWindow {
           (k) => this.isRecreateNeeded[k as keyof AppUiConfig],
         )
       ) {
-        this.recreateFn();
+        void this.recreateFn();
         return;
       }
 

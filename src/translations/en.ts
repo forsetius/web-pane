@@ -30,7 +30,7 @@ export default {
       title: 'Preferences',
       showAppMenu: 'Show application menu',
       showWindowFrame: 'Show window frame',
-      showWindowFrameHint: 'Changing this will briefly recreate windows.',
+      windowReloadNeededHint: 'Changing this will briefly recreate windows.',
       showInWindowList: 'Show in window list',
       close: 'Close',
     },

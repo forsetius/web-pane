@@ -7,6 +7,9 @@ declare global {
       get(): Promise<AppUiConfig>;
       set(patch: Partial<AppUiConfig>): void;
       t(key: keyof PreferencesWindowTranslations): Promise<string>;
+      info: {
+        platform: NodeJS.Platform;
+      };
     };
   }
 }
@@ -19,7 +22,8 @@ const translations: Record<string, keyof PreferencesWindowTranslations> = {
   '#title': 'title',
   '#showInWindowListLabel': 'showInWindowList',
   '#showWindowFrameLabel': 'showWindowFrame',
-  '#showWindowFrameHint': 'showWindowFrameHint',
+  '#showWindowFrameHint': 'windowReloadNeededHint',
+  '#showInWindowListHint': 'windowReloadNeededHint',
   '#showAppMenuLabel': 'showAppMenu',
   '#closeBtnLabel': 'close',
 };
@@ -28,6 +32,8 @@ async function main() {
   for (const [id, translationKey] of Object.entries(translations)) {
     qs(id).textContent = await window.prefsAPI.t(translationKey);
   }
+  qs<HTMLDivElement>('#showInWindowListHint').hidden =
+    window.prefsAPI.info.platform !== 'linux';
 
   const prefs = await window.prefsAPI.get();
   qs<HTMLInputElement>('#showInWindowList').checked = prefs.showInWindowList;
@@ -55,13 +61,6 @@ async function main() {
   qs('#closeBtn').addEventListener('click', () => {
     window.close();
   });
-
-  // document.addEventListener('DOMContentLoaded', () => {
-  //   const btn = document.getElementById('closeBtn');
-  //   btn?.addEventListener('click', () => {
-  //     window.close();
-  //   });
-  // });
 }
 
 void main().catch(console.error);

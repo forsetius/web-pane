@@ -30,7 +30,7 @@ export default {
       title: 'Preferencje',
       showAppMenu: 'Pokaż menu aplikacji',
       showWindowFrame: 'Pokaż ramki okien',
-      showWindowFrameHint: 'Zmiana tej opcji spowoduje odtworzenie okien.',
+      windowReloadNeededHint: 'Zmiana tej opcji spowoduje odtworzenie okien.',
       showInWindowList: 'Pokaż na liście okien',
       close: 'Zamknij',
     },

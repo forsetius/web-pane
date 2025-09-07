@@ -1,12 +1,12 @@
 import { Lang } from './types/Lang.js';
-import { TargetAppWindow } from './types/TargetAppWindow.js';
+import { TargetBrowsingWindow } from './types/TargetBrowsingWindow.js';
 import type { AppConfig } from './types/AppConfig.js';
 
 export const configDefaults: AppConfig = {
   lang: Lang.PL,
-  defaultTarget: TargetAppWindow.RIGHT,
+  defaultTarget: TargetBrowsingWindow.RIGHT,
   windows: {
-    [TargetAppWindow.LEFT]: {
+    [TargetBrowsingWindow.LEFT]: {
       visible: false,
       x: 0,
       y: 0,
@@ -14,7 +14,7 @@ export const configDefaults: AppConfig = {
       height: 980,
       alwaysOnTop: true,
     },
-    [TargetAppWindow.RIGHT]: {
+    [TargetBrowsingWindow.RIGHT]: {
       visible: true,
       x: 1200,
       y: 0,

@@ -36,7 +36,7 @@ export interface PreferencesWindowTranslations {
   title: string;
   showAppMenu: string;
   showWindowFrame: string;
-  showWindowFrameHint: string;
+  windowReloadNeededHint: string;
   showInWindowList: string;
   close: string;
 }

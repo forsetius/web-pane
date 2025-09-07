@@ -1,4 +1,4 @@
-export enum TargetAppWindow {
+export enum TargetBrowsingWindow {
   LEFT = 'left',
   RIGHT = 'right',
 }
