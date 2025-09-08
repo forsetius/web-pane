@@ -1,17 +1,26 @@
 import { BrowserWindow, session, WebContentsView } from 'electron';
 import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
 import { ViewSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
+import { ViewSwitcher } from './ViewSwitcher.js';
 
 type AppId = string;
 
 export class BrowsingWindow {
   public readonly views = new Map<AppId, WebContentsView>();
   public currentViewKey?: string | undefined;
+  private switcher: ViewSwitcher;
 
   public constructor(
     public readonly name: TargetBrowsingWindow,
     public readonly window: BrowserWindow,
-  ) {}
+  ) {
+    this.switcher = new ViewSwitcher(
+      window,
+      () => this.views,
+      () => this.currentViewKey,
+      (id) => this.displayView(id),
+    );
+  }
 
   public getCurrentView() {
     return this.views.get(this.currentViewKey ?? '');
@@ -84,30 +93,12 @@ export class BrowsingWindow {
     });
 
     this.views.set(appId, webContentsView);
+    this.switcher.attachView(appId, webContentsView);
     if (url) {
       await webContentsView.webContents.loadURL(url);
     }
 
     return webContentsView;
-  }
-
-  /**
-   * Switches to the next or previous view in the order of views.
-   *
-   * @param {boolean} goForward - If true, switches to the next view; otherwise, switches to the previous view.
-   */
-  public switchView(goForward = true) {
-    if (this.views.size < 2) return;
-
-    const arr = Array.from(this.views.keys());
-    const idx = arr.findIndex((k) => k === this.currentViewKey);
-    if (idx === -1) return;
-
-    const appId = goForward
-      ? arr[(idx + 1) % arr.length]!
-      : arr[(idx - 1 + arr.length) % arr.length]!;
-
-    this.displayView(appId);
   }
 
   /**
@@ -154,7 +145,7 @@ export class BrowsingWindow {
    * @param {WindowSnapshot} snapshot - The snapshot object containing the state to restore, including views and their properties.
    * @return {Promise<void>}
    */
-  public async restoreState(snapshot: WindowSnapshot) {
+  public async restoreState(snapshot: WindowSnapshot): Promise<void> {
     this.views.clear();
 
     for (const viewSnapshot of snapshot.views) {

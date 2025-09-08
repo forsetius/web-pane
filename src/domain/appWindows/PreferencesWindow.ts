@@ -1,10 +1,10 @@
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Config } from './Config.js';
-import type { Lang } from '../types/Lang.js';
-import type { AppUiConfig } from '../types/AppConfig.js';
-import type { PreferencesWindowTranslations } from '../types/TranslationStrings.js';
+import { Config } from '../Config.js';
+import type { Lang } from '../../types/Lang.js';
+import type { AppUiConfig } from '../../types/AppConfig.js';
+import type { PreferencesWindowTranslations } from '../../types/TranslationStrings.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,7 +60,7 @@ export class PreferencesWindow {
         contextIsolation: true,
         enablePreferredSizeMode: true,
         nodeIntegration: false,
-        preload: join(__dirname, '../preload/preferencesWindowPreload.cjs'),
+        preload: join(__dirname, '../../preload/preferencesWindowPreload.cjs'),
         sandbox: false,
         webviewTag: false,
         zoomFactor: 1,
@@ -94,7 +94,7 @@ export class PreferencesWindow {
     });
 
     await window.loadFile(
-      join(import.meta.dirname, '../renderer/preferences.html'),
+      join(import.meta.dirname, '../../renderer/preferences.html'),
     );
 
     this.window = window;

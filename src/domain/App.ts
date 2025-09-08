@@ -10,7 +10,7 @@ import { langCommand, showCommand } from '../cliCommands/index.js';
 import { Lang } from '../types/Lang.js';
 import type { StrictRecord } from '../types/types.js';
 import type { TranslationStrings } from '../types/TranslationStrings.js';
-import { PreferencesWindow } from './PreferencesWindow.js';
+import { PreferencesWindow } from './appWindows/PreferencesWindow.js';
 import * as object from '../utils/object.js';
 
 const importSyncDefault = <T>(path: string): T => {
@@ -148,7 +148,7 @@ export class App {
   }
 
   public toggleFocusedDevTools(detach = true): void {
-    const activeView = this.appWindows.preferences?.window; // dopasuj do swojej klasy
+    const activeView = this.appWindows.preferences?.window;
     const wc = activeView?.webContents;
 
     if (!wc) return;

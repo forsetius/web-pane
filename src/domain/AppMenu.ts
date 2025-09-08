@@ -105,24 +105,6 @@ export class AppMenu {
               this.goForward();
             },
           },
-          { type: 'separator' },
-          {
-            label: this.translations[lang].nextView,
-            accelerator: process.platform === 'darwin' ? 'Cmd+Tab' : 'Ctrl+Tab',
-            click: () => {
-              this.switchView(true);
-            },
-          },
-          {
-            label: this.translations[lang].previousView,
-            accelerator:
-              process.platform === 'darwin'
-                ? 'Cmd+Shift+Tab'
-                : 'Ctrl+Shift+Tab',
-            click: () => {
-              this.switchView(false);
-            },
-          },
         ],
       },
       {
@@ -194,12 +176,5 @@ export class AppMenu {
 
   private async showPreferencesWindow() {
     await this.app.appWindows.preferences?.show();
-  }
-
-  private switchView(goForward: boolean) {
-    const appWindow = this.app.browserWindows.getActive();
-    if (!appWindow) return;
-
-    appWindow.switchView(goForward);
   }
 }

@@ -6,7 +6,7 @@ import type { AppUiConfig } from '../types/AppConfig.js';
 import { AppSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
 
 export class BrowsingWindowPool {
-  public readonly pool = new Map<TargetBrowsingWindow, BrowsingWindow>(); // target -> window state
+  public readonly pool = new Map<TargetBrowsingWindow, BrowsingWindow>();
 
   public constructor(private readonly config: Config) {}
 
@@ -21,9 +21,11 @@ export class BrowsingWindowPool {
     const ui = this.config.get('ui');
     const window = new BrowserWindow({
       ...geometry,
+      backgroundColor: '#00000000',
       title: `WebPane – ${target}`,
       show: true,
       autoHideMenuBar: !ui.showAppMenu,
+      alwaysOnTop: true,
       frame: ui.showWindowFrame,
       type: ui.showInWindowList ? 'application' : 'utility',
       webPreferences: {
