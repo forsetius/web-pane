@@ -34,5 +34,8 @@ export default {
       showInWindowList: 'Pokaż na liście okien',
       close: 'Zamknij',
     },
+    switcher: {
+      hint: 'Trzymaj Ctrl, naciskaj Tab / Shift+Tab. Puść Ctrl, aby wybrać.',
+    },
   },
 };

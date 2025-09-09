@@ -34,5 +34,8 @@ export default {
       showInWindowList: 'Show in window list',
       close: 'Close',
     },
+    switcher: {
+      hint: 'Hold Ctrl, press Tab / Shift+Tab. Release Ctrl to select.',
+    },
   },
 };

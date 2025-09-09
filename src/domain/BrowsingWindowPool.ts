@@ -1,14 +1,14 @@
 import { BrowserWindow } from 'electron';
 import { BrowsingWindow } from './BrowsingWindow.js';
-import { Config } from './Config.js';
+import { ConfigService } from './ConfigService.js';
 import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
 import { AppSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
+import { container } from 'tsyringe';
 
 export class BrowsingWindowPool {
-  public readonly pool = new Map<TargetBrowsingWindow, BrowsingWindow>(); // target -> window state
-
-  public constructor(private readonly config: Config) {}
+  private readonly configService = container.resolve(ConfigService);
+  public readonly pool = new Map<TargetBrowsingWindow, BrowsingWindow>();
 
   public getActive() {
     return Array.from(this.pool.values()).find((appWindow) =>
@@ -17,13 +17,15 @@ export class BrowsingWindowPool {
   }
 
   public createWindow(target: TargetBrowsingWindow) {
-    const geometry = this.config.get(`windows`)[target];
-    const ui = this.config.get('ui');
+    const geometry = this.configService.get(`windows`)[target];
+    const ui = this.configService.get('ui');
     const window = new BrowserWindow({
       ...geometry,
+      backgroundColor: '#00000000',
       title: `WebPane – ${target}`,
       show: true,
       autoHideMenuBar: !ui.showAppMenu,
+      alwaysOnTop: true,
       frame: ui.showWindowFrame,
       type: ui.showInWindowList ? 'application' : 'utility',
       webPreferences: {
@@ -40,7 +42,7 @@ export class BrowsingWindowPool {
       const appWindow = this.pool.get(target);
       if (!appWindow) return;
 
-      this.config.save({
+      this.configService.save({
         windows: { [target]: { visible: false } },
       });
       this.pool.delete(target);
@@ -61,7 +63,7 @@ export class BrowsingWindowPool {
     window.on('always-on-top-changed', persistGeometry);
 
     const appWindow = new BrowsingWindow(target, window);
-    this.config.save({
+    this.configService.save({
       windows: { [target]: { visible: true } },
     });
     this.pool.set(target, appWindow);
@@ -78,7 +80,7 @@ export class BrowsingWindowPool {
     const [x, y] = window.getPosition() as [number, number];
     const alwaysOnTop = window.isAlwaysOnTop();
 
-    this.config.save({
+    this.configService.save({
       windows: { [target]: { x, y, width, height, alwaysOnTop } },
     });
   }

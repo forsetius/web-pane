@@ -1,4 +1,5 @@
 #!/bin/env node
+import 'reflect-metadata';
 import { App } from './domain/App.js';
 
 const app = new App();

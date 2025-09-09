@@ -5,6 +5,9 @@ export interface TranslationStrings {
   menu: MenuTranslations;
   windows: {
     preferences: PreferencesWindowTranslations;
+    switcher: {
+      hint: string;
+    };
   };
 }
 
