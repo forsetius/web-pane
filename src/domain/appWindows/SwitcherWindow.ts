@@ -95,7 +95,7 @@ export class SwitcherWindow {
       items,
       focusedId,
       dark: nativeTheme.shouldUseDarkColors,
-      timeoutMs: 1500,
+      timeoutMs: 4500,
     });
   }
 

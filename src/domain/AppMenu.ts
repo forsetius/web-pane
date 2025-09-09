@@ -1,23 +1,26 @@
 import { Menu, MenuItemConstructorOptions } from 'electron';
 import { App } from './App.js';
 import { Lang } from '../types/Lang.js';
-import type { TranslationStrings } from '../types/TranslationStrings.js';
+import { container } from 'tsyringe';
+import { TranslationService } from './TranslationService.js';
+import { ConfigService } from './ConfigService.js';
 
 export class AppMenu {
-  public constructor(
-    private readonly translations: Record<Lang, TranslationStrings['menu']>,
-    private readonly app: App,
-  ) {
-    this.build(app.config.get('lang'));
+  private readonly configService = container.resolve(ConfigService);
+  private readonly translationService = container.resolve(TranslationService);
+
+  public constructor(private readonly app: App) {
+    this.build(this.configService.get('lang'));
   }
 
   public build(lang: Lang) {
+    const t = this.translationService;
     const template: MenuItemConstructorOptions[] = [
       {
-        label: this.translations[lang].app,
+        label: t.get(lang, 'menu.app'),
         submenu: [
           {
-            label: this.translations[lang].minimize,
+            label: t.get(lang, 'menu.minimize'),
             accelerator: 'Alt+Down',
             click: () => {
               this.minimize();
@@ -30,23 +33,23 @@ export class AppMenu {
           { type: 'separator' },
           {
             role: 'quit',
-            label: this.translations[lang].quit,
+            label: t.get(lang, 'menu.quit'),
             accelerator: 'Alt+F4',
           },
         ],
       },
       {
-        label: this.translations[lang].view,
+        label: t.get(lang, 'menu.view'),
         submenu: [
           {
-            label: this.translations[lang].reload,
+            label: t.get(lang, 'menu.reload'),
             accelerator: process.platform === 'darwin' ? 'Cmd+R' : 'Ctrl+R',
             click: () => {
               this.reload();
             },
           },
           {
-            label: this.translations[lang].forceReload,
+            label: t.get(lang, 'menu.forceReload'),
             accelerator:
               process.platform === 'darwin' ? 'Cmd+Shift+R' : 'Ctrl+Shift+R',
             click: () => {
@@ -56,23 +59,23 @@ export class AppMenu {
           { type: 'separator' },
           {
             role: 'resetZoom',
-            label: this.translations[lang].resetZoom,
+            label: t.get(lang, 'menu.resetZoom'),
             accelerator: process.platform === 'darwin' ? 'Cmd+0' : 'Ctrl+0',
           },
           {
             role: 'zoomIn',
-            label: this.translations[lang].zoomIn,
+            label: t.get(lang, 'menu.zoomIn'),
             accelerator:
               process.platform === 'darwin' ? 'Cmd+Shift+=' : 'Ctrl+Shift+=',
           },
           {
             role: 'zoomOut',
-            label: this.translations[lang].zoomOut,
+            label: t.get(lang, 'menu.zoomOut'),
             accelerator: process.platform === 'darwin' ? 'Cmd+-' : 'Ctrl+-',
           },
           { type: 'separator' },
           {
-            label: this.translations[lang].preferences,
+            label: t.get(lang, 'menu.preferences'),
             accelerator: 'F10',
             click: () => {
               void this.showPreferencesWindow();
@@ -89,17 +92,17 @@ export class AppMenu {
         ],
       },
       {
-        label: this.translations[lang].navigation,
+        label: t.get(lang, 'menu.navigation'),
         submenu: [
           {
-            label: this.translations[lang].backward,
+            label: t.get(lang, 'menu.backward'),
             accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Alt+Left',
             click: () => {
               this.goBack();
             },
           },
           {
-            label: this.translations[lang].forward,
+            label: t.get(lang, 'menu.forward'),
             accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Alt+Right',
             click: () => {
               this.goForward();
@@ -108,20 +111,20 @@ export class AppMenu {
         ],
       },
       {
-        label: this.translations[lang].language,
+        label: t.get(lang, 'menu.language'),
         submenu: [
           {
-            label: this.translations[lang].polish,
+            label: t.get(lang, 'menu.polish'),
             type: 'radio',
-            checked: this.app.config.get('lang') === Lang.PL,
+            checked: this.configService.get('lang') === Lang.PL,
             click: () => {
               this.changeLanguage(Lang.PL);
             },
           },
           {
-            label: this.translations[lang].english,
+            label: t.get(lang, 'menu.english'),
             type: 'radio',
-            checked: this.app.config.get('lang') === Lang.EN,
+            checked: this.configService.get('lang') === Lang.EN,
             click: () => {
               this.changeLanguage(Lang.EN);
             },

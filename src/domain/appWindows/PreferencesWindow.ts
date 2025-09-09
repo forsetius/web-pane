@@ -1,8 +1,9 @@
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Config } from '../Config.js';
-import type { Lang } from '../../types/Lang.js';
+import { container } from 'tsyringe';
+import { ConfigService } from '../ConfigService.js';
+import { TranslationService } from '../TranslationService.js';
 import type { AppUiConfig } from '../../types/AppConfig.js';
 import type { PreferencesWindowTranslations } from '../../types/TranslationStrings.js';
 
@@ -10,6 +11,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class PreferencesWindow {
+  private readonly configService = container.resolve(ConfigService);
+  private readonly translationService = container.resolve(TranslationService);
   public window?: BrowserWindow | undefined;
   private doRecreate = {
     showWindowFrame: true,
@@ -19,8 +22,6 @@ export class PreferencesWindow {
   private isQuitting = false;
 
   public constructor(
-    private readonly config: Config,
-    private readonly translations: Record<Lang, PreferencesWindowTranslations>,
     private readonly applyUiFn: (ui: AppUiConfig) => void,
     private readonly recreateFn: () => Promise<void>,
   ) {
@@ -120,11 +121,11 @@ export class PreferencesWindow {
   private registerIpc(): void {
     if (ipcMain.listenerCount('preferences:get') > 0) return;
 
-    ipcMain.handle('prefs:get-ui', () => this.config.get('ui'));
+    ipcMain.handle('prefs:get-ui', () => this.configService.get('ui'));
 
     ipcMain.on('prefs:set-ui', (_e, patch: Partial<AppUiConfig>) => {
-      this.config.save({ ui: patch });
-      const after = this.config.get('ui');
+      this.configService.save({ ui: patch });
+      const after = this.configService.get('ui');
 
       if (
         Object.keys(patch).some((k) => this.doRecreate[k as keyof AppUiConfig])
@@ -137,9 +138,9 @@ export class PreferencesWindow {
     });
 
     ipcMain.handle('i18n:t', (_e, key: keyof PreferencesWindowTranslations) => {
-      const lang = this.config.get('lang');
+      const lang = this.configService.get('lang');
 
-      return this.translations[lang][key];
+      return this.translationService.get(lang, `windows.preferences.${key}`);
     });
   }
 }

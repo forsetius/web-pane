@@ -7,7 +7,6 @@ declare global {
           focusedId: string;
           dark: boolean;
           timeoutMs: number;
-          i18n: { hint: string };
         }) => void,
       ) => void;
       onNudge: (cb: (dir: 1 | -1) => void) => void;
@@ -30,13 +29,11 @@ const state: {
   index: number;
   timer: number | null;
   timeoutMs: number;
-  i18n: { hint: string };
 } = {
   items: [],
   index: 0,
   timer: null,
-  timeoutMs: 1500,
-  i18n: { hint: '' },
+  timeoutMs: 4500,
 };
 
 function defaultIconDataUrl(): string {
@@ -44,11 +41,6 @@ function defaultIconDataUrl(): string {
     '<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4da3ff"/><stop offset="1" stop-color="#8f7dff"/></linearGradient></defs><rect width="56" height="56" rx="12" fill="#2b2f36"/><circle cx="28" cy="28" r="16" fill="url(#g)"/></svg>',
   );
   return `data:image/svg+xml;charset=utf-8,${svg}`;
-}
-
-function setHint(text: string): void {
-  const hint = document.getElementById('hint');
-  if (hint) hint.textContent = text;
 }
 
 function resetTimer(): void {
@@ -108,12 +100,9 @@ function setFromPayload(data: {
   items: Item[];
   focusedId: string;
   timeoutMs: number;
-  i18n: { hint: string };
 }): void {
   state.items = data.items;
   state.timeoutMs = data.timeoutMs;
-  state.i18n = { hint: 'Help' };
-  setHint(state.i18n.hint);
 
   const idx = state.items.findIndex((i) => i.id === data.focusedId);
   state.index = idx >= 0 ? idx : 0;

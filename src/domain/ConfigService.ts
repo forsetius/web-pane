@@ -8,8 +8,11 @@ import { ConfigZodSchema } from '../types/ConfigZodSchema.js';
 import type { AppConfig } from '../types/AppConfig.js';
 import type * as CT from '../types/ConfigTypes.js';
 import { fromZodError } from '../utils/index.js';
+import * as object from '../utils/object.js';
+import { singleton } from 'tsyringe';
 
-export class Config {
+@singleton()
+export class ConfigService {
   private readonly store: AppConfig;
 
   public constructor() {
@@ -50,26 +53,7 @@ export class Config {
   public get<P extends CT.DotPath<AppConfig>>(
     key: P,
   ): CT.PathValue<AppConfig, P> {
-    const segments = (key as string).split('.');
-    let node: unknown = this.store;
-
-    for (const seg of segments) {
-      const maybeIndex = Number(seg);
-      const access: string | number =
-        Number.isInteger(maybeIndex) && maybeIndex.toString() === seg
-          ? maybeIndex
-          : seg;
-
-      if (
-        node == null ||
-        !(access in (node as Record<string | number, unknown>))
-      ) {
-        throw new Error(`Missing config at "${key}" (stopped at "${seg}")`);
-      }
-      node = (node as Record<string | number, unknown>)[access];
-    }
-
-    return node as CT.PathValue<AppConfig, P>;
+    return object.getTyped(this.store, key);
   }
 
   public save(patch?: CT.DeepPartial<AppConfig>): void {
