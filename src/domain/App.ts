@@ -1,17 +1,18 @@
 import { app } from 'electron';
+import { container } from 'tsyringe';
 import { AppMenu } from './AppMenu.js';
 import { BrowsingWindowPool } from './BrowsingWindowPool.js';
 import { ConfigService } from './ConfigService.js';
 import { Lang } from '../types/Lang.js';
 import { PreferencesWindow } from './appWindows/PreferencesWindow.js';
-import { container } from 'tsyringe';
 import { parseCli } from '../parseCli.js';
+import { quitWithFatalError } from '../utils/error.js';
 
 export class App {
   public readonly hasLock: boolean;
   public readonly electron: typeof app;
   public _appMenu: AppMenu | undefined = undefined;
-  public configService: ConfigService;
+  public configService!: ConfigService;
   public _browserWindows: BrowsingWindowPool | undefined = undefined;
   public readonly appWindows: AppWindows = {
     preferences: undefined,
@@ -46,8 +47,13 @@ export class App {
       app.quit();
     });
 
-    this.configService = container.resolve(ConfigService);
     this.electron = app;
+    try {
+      this.configService = container.resolve(ConfigService);
+    } catch (e) {
+      console.error(e);
+      quitWithFatalError(app, 'Failed to load config.');
+    }
   }
 
   public init() {
@@ -65,7 +71,7 @@ export class App {
 
   public async handleInvocation(argv: string[]) {
     const args = parseCli(argv);
-
+    console.log(args);
     const { id, url, target } = args;
     let appWindow = this.browserWindows.get(target);
     if (appWindow) {
@@ -80,7 +86,9 @@ export class App {
     }
 
     if (id) {
-      if (!appWindow.isViewId(id) && url) await appWindow.createView(url);
+      if (!appWindow.hasViewId(id) && url) {
+        await appWindow.createView(id, url);
+      }
       appWindow.displayView(id);
     }
   }

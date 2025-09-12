@@ -4,6 +4,7 @@ import { container } from 'tsyringe';
 import { ConfigService } from './domain/ConfigService.js';
 import { TranslationService } from './domain/TranslationService.js';
 import { InvalidUrlException } from './exceptions/InvalidUrlException.js';
+import colors from 'yoctocolors';
 
 export type CliOutputArgs =
   | {
@@ -30,7 +31,7 @@ export function parseCli(argv: string[]) {
         if (typeof value !== 'string' || value.trim() === '') {
           throw new InvalidUrlException('nonEmpty');
         }
-        if (!/^https?:$/.test(value)) {
+        if (!/^https?:\/\//.test(value)) {
           throw new InvalidUrlException('notHttp');
         }
         try {
@@ -50,7 +51,7 @@ export function parseCli(argv: string[]) {
     .option('target', {
       type: 'string',
       describe: 'Target pane',
-      default: 'primary',
+      default: 'main',
     })
     .middleware((argv) => {
       if (argv.url) {
@@ -61,11 +62,9 @@ export function parseCli(argv: string[]) {
     .fail((msg, err, yargs) => {
       yargs.showHelp();
       const lang = container.resolve(ConfigService).get('lang');
-      const out =
-        msg ||
-        err.message ||
-        container.resolve(TranslationService).get(lang, 'error.unknown');
-      console.error(out);
+      const t = container.resolve(TranslationService);
+      const out = msg || err.message || t.get(lang, 'error.unknown');
+      console.error('\n' + colors.red(t.get(lang, 'error.error')) + '\n' + out);
 
       app.exit(1);
     })

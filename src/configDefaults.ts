@@ -6,7 +6,7 @@ export const configDefaults: AppConfig = {
   windows: {
     main: {
       visible: false,
-      x: 0,
+      x: 1200,
       y: 0,
       width: 720,
       height: 980,

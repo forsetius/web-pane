@@ -1,5 +1,6 @@
 export default {
   error: {
+    error: 'Error',
     unknown: 'Unknown Error',
     url: {
       invalid: 'Invalid URL',

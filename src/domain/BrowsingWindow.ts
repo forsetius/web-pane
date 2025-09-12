@@ -31,7 +31,7 @@ export class BrowsingWindow {
       : undefined;
   }
 
-  public isViewId(appId: AppId): boolean {
+  public hasViewId(appId: AppId): boolean {
     return this.views.has(appId);
   }
 
@@ -96,6 +96,7 @@ export class BrowsingWindow {
     });
 
     this.views.set(appId, webContentsView);
+    console.log(this.hasViewId(appId), url);
     this.switcher.attachView(appId, webContentsView);
     if (url) {
       await webContentsView.webContents.loadURL(url);

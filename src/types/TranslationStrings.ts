@@ -10,12 +10,13 @@ export interface TranslationStrings {
 }
 
 export interface ErrorTranslations {
+  error: string;
   unknown: string;
   url: {
     invalid: string;
     nonEmpty: string;
     notHttp: string;
-  }
+  };
 }
 
 export interface MenuTranslations {
