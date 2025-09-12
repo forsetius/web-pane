@@ -1,17 +1,16 @@
 import { BrowserWindow, session, WebContentsView } from 'electron';
-import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
 import { ViewSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
 import { ViewSwitcher } from './ViewSwitcher.js';
 
 type AppId = string;
 
 export class BrowsingWindow {
-  public readonly views = new Map<AppId, WebContentsView>();
-  public currentViewKey?: string | undefined;
+  private readonly views = new Map<AppId, WebContentsView>();
+  private currentViewKey: string | undefined = undefined;
   private switcher: ViewSwitcher;
 
   public constructor(
-    public readonly name: TargetBrowsingWindow,
+    public readonly name: string,
     public readonly window: BrowserWindow,
   ) {
     this.switcher = new ViewSwitcher(
@@ -22,18 +21,22 @@ export class BrowsingWindow {
     );
   }
 
-  public getCurrentView() {
-    return this.views.get(this.currentViewKey ?? '');
+  public isCurrentViewId(appId: AppId | undefined): boolean {
+    return typeof appId === 'string' && this.currentViewKey === appId;
   }
 
-  /**
-   * Returns the view for the given app id. If it doesn't exist, creates it.
-   *
-   * @param appId
-   * @param url
-   */
-  public async ensureView(appId: AppId, url: string) {
-    return this.views.get(appId) ?? (await this.createView(appId, url));
+  public getCurrentView() {
+    return this.currentViewKey
+      ? this.views.get(this.currentViewKey)
+      : undefined;
+  }
+
+  public isViewId(appId: AppId): boolean {
+    return this.views.has(appId);
+  }
+
+  public getView(appId: AppId) {
+    return this.views.get(appId);
   }
 
   /**

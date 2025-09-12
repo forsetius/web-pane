@@ -1,5 +1,3 @@
-import { TargetBrowsingWindow } from './TargetBrowsingWindow.js';
-
 export interface ViewHistoryEntry {
   url: string;
   title: string;
@@ -17,7 +15,7 @@ export interface ViewSnapshot {
 }
 
 export interface WindowSnapshot {
-  id: TargetBrowsingWindow; // wewn. id okna/pula
+  id: string;
   currentViewKey?: string;
   views: ViewSnapshot[];
 }

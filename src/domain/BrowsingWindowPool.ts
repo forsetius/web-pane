@@ -1,14 +1,17 @@
 import { BrowserWindow } from 'electron';
 import { BrowsingWindow } from './BrowsingWindow.js';
 import { ConfigService } from './ConfigService.js';
-import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
 import { AppSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
 import { container } from 'tsyringe';
 
 export class BrowsingWindowPool {
   private readonly configService = container.resolve(ConfigService);
-  public readonly pool = new Map<TargetBrowsingWindow, BrowsingWindow>();
+  public readonly pool = new Map<string, BrowsingWindow>();
+
+  public get(windowId: string) {
+    return this.pool.get(windowId);
+  }
 
   public getActive() {
     return Array.from(this.pool.values()).find((appWindow) =>
@@ -16,7 +19,7 @@ export class BrowsingWindowPool {
     );
   }
 
-  public createWindow(target: TargetBrowsingWindow) {
+  public createWindow(target: string) {
     const geometry = this.configService.get(`windows`)[target];
     const ui = this.configService.get('ui');
     const window = new BrowserWindow({
@@ -48,10 +51,7 @@ export class BrowsingWindowPool {
       this.pool.delete(target);
     });
     window.on('resize', () => {
-      const appWindow = this.pool.get(target);
-      if (!appWindow?.currentViewKey) return;
-
-      const webContentsView = appWindow.getCurrentView();
+      const webContentsView = this.pool.get(target)?.getCurrentView();
       if (!webContentsView) return;
 
       const [width, height] = window.getContentSize() as [number, number];
@@ -71,7 +71,7 @@ export class BrowsingWindowPool {
     return appWindow;
   }
 
-  private persistWindowGeometry(target: TargetBrowsingWindow) {
+  private persistWindowGeometry(target: string) {
     const state = this.pool.get(target);
     if (!state) return;
 

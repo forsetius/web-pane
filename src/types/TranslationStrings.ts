@@ -1,7 +1,5 @@
 export interface TranslationStrings {
-  error: {
-    unknown: string;
-  };
+  error: ErrorTranslations;
   menu: MenuTranslations;
   windows: {
     preferences: PreferencesWindowTranslations;
@@ -9,6 +7,15 @@ export interface TranslationStrings {
       hint: string;
     };
   };
+}
+
+export interface ErrorTranslations {
+  unknown: string;
+  url: {
+    invalid: string;
+    nonEmpty: string;
+    notHttp: string;
+  }
 }
 
 export interface MenuTranslations {

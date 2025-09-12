@@ -1,6 +1,11 @@
 export default {
   error: {
     unknown: 'Nieznany błąd',
+    url: {
+      invalid: 'Niepoprawny adres URL',
+      nonEmpty: 'Wymagany niepusty adres URL',
+      notHttp: 'Dozwolone tylko protokoły HTTP(S)',
+    }
   },
   menu: {
     app: 'Aplikacja',

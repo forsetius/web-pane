@@ -1,13 +1,11 @@
 import { app } from 'electron';
-import yargs from 'yargs/yargs';
 import { AppMenu } from './AppMenu.js';
 import { BrowsingWindowPool } from './BrowsingWindowPool.js';
 import { ConfigService } from './ConfigService.js';
-import { langCommand, showCommand } from '../cliCommands/index.js';
 import { Lang } from '../types/Lang.js';
 import { PreferencesWindow } from './appWindows/PreferencesWindow.js';
 import { container } from 'tsyringe';
-import { TranslationService } from './TranslationService.js';
+import { parseCli } from '../parseCli.js';
 
 export class App {
   public readonly hasLock: boolean;
@@ -15,7 +13,6 @@ export class App {
   public _appMenu: AppMenu | undefined = undefined;
   public configService: ConfigService;
   public _browserWindows: BrowsingWindowPool | undefined = undefined;
-  private readonly translationService: TranslationService;
   public readonly appWindows: AppWindows = {
     preferences: undefined,
   };
@@ -43,14 +40,13 @@ export class App {
     }
 
     app.on('second-instance', (_e, _argv, _wd, data) => {
-      this.handleInvocation((data as { rawArgv: string[] }).rawArgv);
+      void this.handleInvocation((data as { rawArgv: string[] }).rawArgv);
     });
     app.on('window-all-closed', () => {
       app.quit();
     });
-    this.configService = container.resolve(ConfigService);
-    this.translationService = container.resolve(TranslationService);
 
+    this.configService = container.resolve(ConfigService);
     this.electron = app;
   }
 
@@ -67,25 +63,26 @@ export class App {
     app.on('before-quit', () => this.appWindows.preferences?.setQuitting(true));
   }
 
-  public handleInvocation(argv: string[]) {
-    void yargs(argv)
-      .command(showCommand(this))
-      .command(langCommand(this))
-      .exitProcess(false)
-      .fail((msg, err, yargs) => {
-        yargs.showHelp();
-        const lang = this.configService.get('lang');
-        const out =
-          msg ||
-          err.message ||
-          this.translationService.get(lang, 'error.unknown');
-        console.error(out);
+  public async handleInvocation(argv: string[]) {
+    const args = parseCli(argv);
 
-        app.exit(1);
-      })
-      .version()
-      .help()
-      .parse();
+    const { id, url, target } = args;
+    let appWindow = this.browserWindows.get(target);
+    if (appWindow) {
+      if (!appWindow.window.isMinimized() && appWindow.isCurrentViewId(id)) {
+        appWindow.window.minimize();
+        return;
+      }
+
+      appWindow.window.restore();
+    } else {
+      appWindow = this.browserWindows.createWindow(target);
+    }
+
+    if (id) {
+      if (!appWindow.isViewId(id) && url) await appWindow.createView(url);
+      appWindow.displayView(id);
+    }
   }
 
   public changeLanguage(lang: Lang) {
