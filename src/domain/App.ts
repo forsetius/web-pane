@@ -1,7 +1,7 @@
-import { app } from 'electron';
+import { app as electronApp } from 'electron';
 import { container } from 'tsyringe';
 import { AppMenu } from './AppMenu.js';
-import { BrowsingWindowPool } from './BrowsingWindowPool.js';
+import { PanePool } from './PanePool.js';
 import { ConfigService } from './ConfigService.js';
 import { Lang } from '../types/Lang.js';
 import { PreferencesWindow } from './appWindows/PreferencesWindow.js';
@@ -10,10 +10,10 @@ import { quitWithFatalError } from '../utils/error.js';
 
 export class App {
   public readonly hasLock: boolean;
-  public readonly electron: typeof app;
+  public readonly electron: typeof electronApp;
   public _appMenu: AppMenu | undefined = undefined;
+  public _panes: PanePool | undefined = undefined;
   public configService!: ConfigService;
-  public _browserWindows: BrowsingWindowPool | undefined = undefined;
   public readonly appWindows: AppWindows = {
     preferences: undefined,
   };
@@ -26,33 +26,33 @@ export class App {
     return this._appMenu;
   }
 
-  get browserWindows() {
-    return (this._browserWindows ??= container.resolve(BrowsingWindowPool));
+  get panes() {
+    return (this._panes ??= container.resolve(PanePool));
   }
 
   public constructor() {
     const rawArgv = process.argv.slice(process.defaultApp ? 2 : 1);
 
-    app.commandLine.appendSwitch('log-level', '3');
+    electronApp.commandLine.appendSwitch('log-level', '3');
 
-    this.hasLock = app.requestSingleInstanceLock({ rawArgv });
+    this.hasLock = electronApp.requestSingleInstanceLock({ rawArgv });
     if (!this.hasLock) {
-      app.quit();
+      electronApp.quit();
     }
 
-    app.on('second-instance', (_e, _argv, _wd, data) => {
+    electronApp.on('second-instance', (_e, _argv, _wd, data) => {
       void this.handleInvocation((data as { rawArgv: string[] }).rawArgv);
     });
-    app.on('window-all-closed', () => {
-      app.quit();
+    electronApp.on('window-all-closed', () => {
+      electronApp.quit();
     });
 
-    this.electron = app;
+    this.electron = electronApp;
     try {
       this.configService = container.resolve(ConfigService);
     } catch (e) {
       console.error(e);
-      quitWithFatalError(app, 'Failed to load config.');
+      quitWithFatalError(electronApp, 'Failed to load config.');
     }
   }
 
@@ -60,20 +60,22 @@ export class App {
     this._appMenu = new AppMenu(this);
     this.appWindows.preferences = new PreferencesWindow(
       (ui) => {
-        this.browserWindows.applyUi(ui);
+        this.panes.applyUi(ui);
       },
       async () => {
-        await this.browserWindows.recreateWindows();
+        await this.panes.recreateWindows();
       },
     );
-    app.on('before-quit', () => this.appWindows.preferences?.setQuitting(true));
+    electronApp.on('before-quit', () =>
+      this.appWindows.preferences?.setQuitting(true),
+    );
   }
 
   public async handleInvocation(argv: string[]) {
     const args = parseCli(argv);
-    console.log(args);
     const { id, url, target } = args;
-    let appWindow = this.browserWindows.get(target);
+
+    let appWindow = this.panes.get(target);
     if (appWindow) {
       if (!appWindow.window.isMinimized() && appWindow.isCurrentViewId(id)) {
         appWindow.window.minimize();
@@ -82,7 +84,7 @@ export class App {
 
       appWindow.window.restore();
     } else {
-      appWindow = this.browserWindows.createWindow(target);
+      appWindow = this.panes.createWindow(target);
     }
 
     if (id) {

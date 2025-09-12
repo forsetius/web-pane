@@ -1,13 +1,13 @@
 import { BrowserWindow } from 'electron';
-import { BrowsingWindow } from './BrowsingWindow.js';
+import { Pane } from './Pane.js';
 import { ConfigService } from './ConfigService.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
-import { AppSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
+import { AppSnapshot, PaneSnapshot } from '../types/ViewSnapshot.js';
 import { container } from 'tsyringe';
 
-export class BrowsingWindowPool {
+export class PanePool {
   private readonly configService = container.resolve(ConfigService);
-  public readonly pool = new Map<string, BrowsingWindow>();
+  public readonly pool = new Map<string, Pane>();
 
   public get(windowId: string) {
     return this.pool.get(windowId);
@@ -20,7 +20,7 @@ export class BrowsingWindowPool {
   }
 
   public createWindow(target: string) {
-    const geometry = this.configService.get(`windows`)[target];
+    const geometry = this.configService.get(`panes`)[target];
     const ui = this.configService.get('ui');
     const window = new BrowserWindow({
       ...geometry,
@@ -46,7 +46,7 @@ export class BrowsingWindowPool {
       if (!appWindow) return;
 
       this.configService.save({
-        windows: { [target]: { visible: false } },
+        panes: { [target]: { visible: false } },
       });
       this.pool.delete(target);
     });
@@ -62,9 +62,9 @@ export class BrowsingWindowPool {
     window.on('move', persistGeometry);
     window.on('always-on-top-changed', persistGeometry);
 
-    const appWindow = new BrowsingWindow(target, window);
+    const appWindow = new Pane(target, window);
     this.configService.save({
-      windows: { [target]: { visible: true } },
+      panes: { [target]: { visible: true } },
     });
     this.pool.set(target, appWindow);
 
@@ -81,7 +81,7 @@ export class BrowsingWindowPool {
     const alwaysOnTop = window.isAlwaysOnTop();
 
     this.configService.save({
-      windows: { [target]: { x, y, width, height, alwaysOnTop } },
+      panes: { [target]: { x, y, width, height, alwaysOnTop } },
     });
   }
 
@@ -98,7 +98,7 @@ export class BrowsingWindowPool {
       browserWindow.window.destroy();
     });
     await Promise.all(
-      snapshot.windows.map(async (windowSnapshot) => {
+      snapshot.panes.map(async (windowSnapshot) => {
         await this.restoreWindow(windowSnapshot);
       }),
     );
@@ -106,15 +106,15 @@ export class BrowsingWindowPool {
 
   private snapshotState(): AppSnapshot {
     return {
-      windows: Array.from(
+      panes: Array.from(
         this.pool.values().map((window) => window.snapshotState()),
       ),
-      focusedWindowId: this.getActive()?.name,
+      focusedPaneId: this.getActive()?.name,
     };
   }
 
-  private async restoreWindow(snapshot: WindowSnapshot) {
-    const window = this.createWindow(snapshot.id);
+  private async restoreWindow(snapshot: PaneSnapshot) {
+    const window = this.createWindow(snapshot.paneId);
     await window.restoreState(snapshot);
   }
 }

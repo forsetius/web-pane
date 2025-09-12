@@ -4,7 +4,7 @@ export interface ViewHistoryEntry {
 }
 
 export interface ViewSnapshot {
-  key: string;
+  viewId: string;
   partition: string;
   zoomFactor?: number;
   isAudioMuted?: boolean;
@@ -14,13 +14,13 @@ export interface ViewSnapshot {
   };
 }
 
-export interface WindowSnapshot {
-  id: string;
-  currentViewKey?: string;
+export interface PaneSnapshot {
+  paneId: string;
+  currentViewId?: string;
   views: ViewSnapshot[];
 }
 
 export interface AppSnapshot {
-  windows: WindowSnapshot[];
-  focusedWindowId?: string | undefined;
+  panes: PaneSnapshot[];
+  focusedPaneId?: string | undefined;
 }

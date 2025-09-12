@@ -1,4 +1,4 @@
-export interface WindowState {
+export interface PaneState {
   visible: boolean;
   x: number;
   y: number;

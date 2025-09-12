@@ -11,7 +11,8 @@ export default {
   menu: {
     app: 'Aplikacja',
     backward: 'Wstecz',
-    closeTab: 'Zamknij (Ctrl+W)',
+    closeView: 'Zamknij stronę',
+    closePane: 'Zamknij okno',
     english: 'Angielski',
     forceReload: 'Wymuś przeładowanie',
     forward: 'Dalej',

@@ -11,7 +11,8 @@ export default {
   menu: {
     app: 'Application',
     backward: 'Back',
-    closeTab: 'Close (Ctrl+W)',
+    closeView: 'Close the web page',
+    closePane: 'Close the pane',
     english: 'English',
     forceReload: 'Force Reload',
     forward: 'Forward',
@@ -36,7 +37,7 @@ export default {
       title: 'Preferences',
       showAppMenu: 'Show application menu',
       showWindowFrame: 'Show window frame',
-      windowReloadNeededHint: 'Changing this will briefly recreate windows.',
+      windowReloadNeededHint: 'Changing this will briefly recreate panes.',
       showInWindowList: 'Show in window list',
       close: 'Close',
     },

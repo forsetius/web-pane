@@ -21,7 +21,8 @@ export interface ErrorTranslations {
 
 export interface MenuTranslations {
   backward: string;
-  closeTab: string;
+  closeView: string;
+  closePane: string;
   english: string;
   app: string;
   forceReload: string;

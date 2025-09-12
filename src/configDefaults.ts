@@ -3,7 +3,7 @@ import type { AppConfig } from './types/AppConfig.js';
 
 export const configDefaults: AppConfig = {
   lang: Lang.PL,
-  windows: {
+  panes: {
     main: {
       visible: false,
       x: 1200,

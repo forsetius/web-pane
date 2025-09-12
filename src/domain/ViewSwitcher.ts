@@ -66,13 +66,11 @@ export class ViewSwitcher {
       const isCmdOrCtrl = (input.control || input.meta) satisfies boolean;
       const isTab = input.key === 'Tab' || input.code === 'Tab';
 
-      // Ctrl/Cmd + Tab (+ opcjonalnie Shift)
       if (input.type === 'keyDown' && isCmdOrCtrl && isTab) {
         event.preventDefault();
         this.handleTab(input.shift ? -1 : 1);
       }
 
-      // Puszczenie Ctrl/Cmd = zatwierdzenie
       if (
         input.type === 'keyUp' &&
         (input.key.toLowerCase() === 'control' ||
@@ -81,7 +79,6 @@ export class ViewSwitcher {
         if (this.switcher.isOpen()) this.switcher.close(true);
       }
 
-      // Esc = anuluj
       if (
         input.type === 'keyDown' &&
         input.code === 'Escape' &&

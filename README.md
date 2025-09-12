@@ -1,5 +1,5 @@
 # web-pane
-Web-pane is a cross-platform desktop application that allows you to open web pages in "panes" - a kind of always-on-top windows.
+Web-pane is a cross-platform desktop application that allows you to open web pages in "panes" - a kind of always-on-top panes.
 
 It is intended to provide an ability to browse a web page and have it right at your fingertips, while working with other applications. Such a pair could be a chat window and a web browser, a documentation and a code editor or Wikipedia and a text editor. 
 
@@ -74,7 +74,7 @@ These instructions are for Linux Mint but would work for Debian-based distros (l
     - `Alt+Up` with command: `web-pane https://chatgpt.com` to open or bring back the ChatGPT pane even if it is not yet started or is minimized
     - `Ctrl+Shift+PgDn` with command: `bash -c 'web-pane --url "$(xclip -o -selection clipboard)"'` to open to previously copied URL in the right pane. You may need to install `xclip` package with `sudo apt install xclip` to use this shortcut.
 
-Provided you have the application installed and you added Plank to the autostart, it will start automatically and present defined webapp activators. Click on the activator to open the webapp in the pane. The pane will stay atop the other windows, allowing you to peek its contents even while you are using other applications. If you click on the activator again, the pane will minimize - it's still there, just hidden from the window list. To bring it again, click its activator yet again
+Provided you have the application installed and you added Plank to the autostart, it will start automatically and present defined webapp activators. Click on the activator to open the webapp in the pane. The pane will stay atop the other panes, allowing you to peek its contents even while you are using other applications. If you click on the activator again, the pane will minimize - it's still there, just hidden from the window list. To bring it again, click its activator yet again
 
 ## Usage
 
@@ -93,4 +93,4 @@ When you click on some other activator, its webapp will replace the previous one
 - `Ctrl+Tab` - switch to the next webapp
 - `F10` - preferences
 
-You can also move the windows by holding `Alt` and dragging them with the mouse.
+You can also move the panes by holding `Alt` and dragging them with the mouse.
