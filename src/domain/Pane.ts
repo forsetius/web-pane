@@ -1,12 +1,12 @@
 import { BrowserWindow, session, WebContentsView } from 'electron';
 import { ViewSnapshot, PaneSnapshot } from '../types/ViewSnapshot.js';
 import { ViewSwitcher } from './ViewSwitcher.js';
+import { RoundRobinList } from '../utils/RoundRobinList.js';
 
 type ViewId = string;
 
 export class Pane {
-  private readonly views = new Map<ViewId, WebContentsView>();
-  private currentViewId: string | undefined = undefined;
+  private readonly views = new RoundRobinList<ViewId, WebContentsView>();
   private switcher: ViewSwitcher;
 
   public constructor(
@@ -16,25 +16,20 @@ export class Pane {
     this.switcher = new ViewSwitcher(
       window,
       () => this.views,
-      () => this.currentViewId,
       (id) => this.displayView(id),
     );
   }
 
   public isCurrentViewId(viewId: ViewId | undefined): boolean {
-    return typeof viewId === 'string' && this.currentViewId === viewId;
+    return typeof viewId === 'string' && this.views.getCurrentKey() === viewId;
   }
 
   public getCurrentView() {
-    return this.currentViewId ? this.views.get(this.currentViewId) : undefined;
+    return this.views.getCurrent();
   }
 
   public hasViewId(viewId: ViewId): boolean {
     return this.views.has(viewId);
-  }
-
-  public getView(viewId: ViewId) {
-    return this.views.get(viewId);
   }
 
   /**
@@ -50,11 +45,9 @@ export class Pane {
     const view = this.views.get(viewId);
     if (!view) return;
 
-    if (this.currentViewId) {
-      const oldView = this.views.get(this.currentViewId);
-      if (oldView) {
-        this.window.contentView.removeChildView(oldView);
-      }
+    const oldView = this.views.getCurrent();
+    if (oldView) {
+      this.window.contentView.removeChildView(oldView);
     }
 
     this.window.contentView.addChildView(view);
@@ -66,7 +59,7 @@ export class Pane {
       height: height ?? 980,
     });
 
-    this.currentViewId = viewId;
+    this.views.setCurrent(viewId);
     this.window.show();
     this.window.focus();
     view.webContents.focus();
@@ -93,13 +86,38 @@ export class Pane {
       },
     });
 
-    this.views.set(viewId, webContentsView);
+    this.views.add(viewId, webContentsView);
     this.switcher.attachView(viewId, webContentsView);
     if (url) {
       await webContentsView.webContents.loadURL(url);
     }
 
     return webContentsView;
+  }
+
+  public closeView(viewId?: ViewId): boolean {
+    const item = viewId ? this.views.getItemByKey(viewId) : this.views.current;
+    if (!item) return false;
+    this.switcher.detachView(item.key);
+
+    try {
+      item.value.webContents.stop();
+      this.window.contentView.removeChildView(item.value);
+    } catch {
+      console.error('Failed to remove view from window');
+    }
+
+    if (this.views.size === 1) {
+      this.views.clear();
+      this.window.close();
+      return true;
+    }
+
+    this.views.remove(item.key);
+    item.value.webContents.close();
+    this.displayView(this.views.getCurrentKey()!);
+
+    return true;
   }
 
   /**
@@ -135,7 +153,7 @@ export class Pane {
 
     return {
       paneId: this.name,
-      currentViewId: this.currentViewId!,
+      currentViewId: this.views.getCurrentKey()!,
       views,
     };
   }

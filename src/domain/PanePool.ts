@@ -9,14 +9,24 @@ export class PanePool {
   private readonly configService = container.resolve(ConfigService);
   public readonly pool = new Map<string, Pane>();
 
-  public get(windowId: string) {
-    return this.pool.get(windowId);
+  public get(windowName: string) {
+    return this.pool.get(windowName);
   }
 
-  public getActive() {
-    return Array.from(this.pool.values()).find((appWindow) =>
-      appWindow.window.isFocused(),
-    );
+  public getById(windowId: number) {
+    for (const [, pane] of this.pool) {
+      if (pane.window.id === windowId) return pane;
+    }
+
+    return undefined;
+  }
+
+  public getActive(): Pane | undefined {
+    for (const [, pane] of this.pool) {
+      if (pane.window.isFocused()) return pane;
+    }
+
+    return undefined;
   }
 
   public createWindow(target: string) {

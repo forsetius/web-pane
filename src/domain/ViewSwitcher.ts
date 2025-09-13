@@ -1,10 +1,7 @@
 import { BrowserWindow, WebContents, WebContentsView } from 'electron';
 import { FaviconCache } from './FaviconCache.js';
 import { SwitcherItem, SwitcherWindow } from './appWindows/SwitcherWindow.js';
-
-type GetViews = () => Map<string, WebContentsView>;
-type GetCurrentId = () => string | undefined;
-type SwitchTo = (id: string) => void;
+import { RoundRobinList } from '../utils/RoundRobinList.js';
 
 export class ViewSwitcher {
   private readonly favicons = new FaviconCache();
@@ -12,9 +9,8 @@ export class ViewSwitcher {
 
   constructor(
     private readonly window: BrowserWindow,
-    private readonly getViews: GetViews,
-    private readonly getCurrentViewId: GetCurrentId,
-    private readonly switchTo: SwitchTo,
+    private readonly getViewsFn: () => RoundRobinList<string, WebContentsView>,
+    private readonly switchToFn: (id: string) => void,
   ) {
     this.installKeyHook(this.window.webContents);
   }
@@ -24,9 +20,21 @@ export class ViewSwitcher {
     this.installKeyHook(view.webContents);
   }
 
+  public detachView(id: string): boolean {
+    const view = this.getViewsFn().get(id);
+    if (!view) return false;
+
+    const wc = view.webContents;
+    if (!wc.isDestroyed()) {
+      wc.removeAllListeners('before-input-event');
+    }
+
+    return true;
+  }
+
   private buildItems(): SwitcherItem[] {
     const items: SwitcherItem[] = [];
-    for (const [id, view] of this.getViews()) {
+    for (const [id, view] of this.getViewsFn().entries()) {
       const title = view.webContents.getTitle();
       items.push({
         id,
@@ -42,11 +50,11 @@ export class ViewSwitcher {
     const items = this.buildItems();
     if (items.length === 0) return;
 
-    const focused = this.getCurrentViewId() ?? items[0]!.id;
+    const focused = this.getViewsFn().getCurrentKey() ?? items[0]!.id;
 
     await this.switcher.open(this.window, items, focused, {
       onCommit: (id) => {
-        if (id) this.switchTo(id);
+        if (id) this.switchToFn(id);
       },
       onCancel: () => {
         /* no-op */
@@ -57,8 +65,11 @@ export class ViewSwitcher {
   }
 
   private handleTab(dir: 1 | -1): void {
-    if (!this.switcher.isOpen()) void this.openSwitcher(dir);
-    else this.switcher.focusNext(dir);
+    if (!this.switcher.isOpen()) {
+      void this.openSwitcher(dir);
+    } else {
+      this.switcher.focusNext(dir);
+    }
   }
 
   private installKeyHook(wc: WebContents): void {
