@@ -1,21 +1,18 @@
 import { z } from 'zod';
 import { Lang } from './Lang.js';
-import { TargetBrowsingWindow } from './TargetBrowsingWindow.js';
+
+const WindowSchema = z.object({
+  visible: z.boolean(),
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+  alwaysOnTop: z.boolean(),
+});
 
 export const ConfigZodSchema = z.object({
-  defaultTarget: z.enum(TargetBrowsingWindow),
   lang: z.enum(Lang),
-  windows: z.record(
-    z.enum(TargetBrowsingWindow),
-    z.object({
-      visible: z.boolean(),
-      x: z.int().nonnegative(),
-      y: z.int().nonnegative(),
-      width: z.int().nonnegative(),
-      height: z.int().nonnegative(),
-      alwaysOnTop: z.boolean(),
-    }),
-  ),
+  panes: z.object({ main: WindowSchema }).catchall(WindowSchema),
   ui: z.object({
     showWindowFrame: z.boolean(),
     showAppMenu: z.boolean(),

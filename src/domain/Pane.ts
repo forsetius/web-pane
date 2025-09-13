@@ -1,39 +1,35 @@
 import { BrowserWindow, session, WebContentsView } from 'electron';
-import { TargetBrowsingWindow } from '../types/TargetBrowsingWindow.js';
-import { ViewSnapshot, WindowSnapshot } from '../types/ViewSnapshot.js';
+import { ViewSnapshot, PaneSnapshot } from '../types/ViewSnapshot.js';
 import { ViewSwitcher } from './ViewSwitcher.js';
+import { RoundRobinList } from '../utils/RoundRobinList.js';
 
-type AppId = string;
+type ViewId = string;
 
-export class BrowsingWindow {
-  public readonly views = new Map<AppId, WebContentsView>();
-  public currentViewKey?: string | undefined;
+export class Pane {
+  private readonly views = new RoundRobinList<ViewId, WebContentsView>();
   private switcher: ViewSwitcher;
 
   public constructor(
-    public readonly name: TargetBrowsingWindow,
+    public readonly name: string,
     public readonly window: BrowserWindow,
   ) {
     this.switcher = new ViewSwitcher(
       window,
       () => this.views,
-      () => this.currentViewKey,
       (id) => this.displayView(id),
     );
   }
 
-  public getCurrentView() {
-    return this.views.get(this.currentViewKey ?? '');
+  public isCurrentViewId(viewId: ViewId | undefined): boolean {
+    return typeof viewId === 'string' && this.views.getCurrentKey() === viewId;
   }
 
-  /**
-   * Returns the view for the given app id. If it doesn't exist, creates it.
-   *
-   * @param appId
-   * @param url
-   */
-  public async ensureView(appId: AppId, url: string) {
-    return this.views.get(appId) ?? (await this.createView(appId, url));
+  public getCurrentView() {
+    return this.views.getCurrent();
+  }
+
+  public hasViewId(viewId: ViewId): boolean {
+    return this.views.has(viewId);
   }
 
   /**
@@ -42,18 +38,16 @@ export class BrowsingWindow {
    * It removes the current view if it exists, adds the new view, and sets the window size to match the new view.
    * It also sets the window to be visible and focused.
    *
-   * @param {AppId} appId - The identifier of the application whose view is to be displayed.
+   * @param {ViewId} viewId - The identifier of the application whose view is to be displayed.
    * @return {WebContentsView | undefined} The displayed view if it exists; otherwise, undefined.
    */
-  public displayView(appId: AppId): WebContentsView | undefined {
-    const view = this.views.get(appId);
+  public displayView(viewId: ViewId): WebContentsView | undefined {
+    const view = this.views.get(viewId);
     if (!view) return;
 
-    if (this.currentViewKey) {
-      const oldView = this.views.get(this.currentViewKey);
-      if (oldView) {
-        this.window.contentView.removeChildView(oldView);
-      }
+    const oldView = this.views.getCurrent();
+    if (oldView) {
+      this.window.contentView.removeChildView(oldView);
     }
 
     this.window.contentView.addChildView(view);
@@ -65,7 +59,7 @@ export class BrowsingWindow {
       height: height ?? 980,
     });
 
-    this.currentViewKey = appId;
+    this.views.setCurrent(viewId);
     this.window.show();
     this.window.focus();
     view.webContents.focus();
@@ -76,24 +70,24 @@ export class BrowsingWindow {
   /**
    * Creates and initializes a new WebContentsView for the specified application ID and optional URL.
    *
-   * @param {AppId} appId - The identifier for the application. Also used to create a persistent session partition.
+   * @param {ViewId} viewId - The identifier for the application. Also used to create a persistent session partition.
    * @param {string} [url] - URL to be loaded into the WebContentsView upon creation. It's optional because in case of a restore, it will be taken from history
    * @return {Promise<WebContentsView>}
    */
   public async createView(
-    appId: AppId,
+    viewId: ViewId,
     url?: string,
   ): Promise<WebContentsView> {
     const webContentsView = new WebContentsView({
       webPreferences: {
-        partition: `persist:${appId}`,
-        session: session.fromPartition(`persist:${appId}`),
+        partition: `persist:${viewId}`,
+        session: session.fromPartition(`persist:${viewId}`),
         contextIsolation: true,
       },
     });
 
-    this.views.set(appId, webContentsView);
-    this.switcher.attachView(appId, webContentsView);
+    this.views.add(viewId, webContentsView);
+    this.switcher.attachView(viewId, webContentsView);
     if (url) {
       await webContentsView.webContents.loadURL(url);
     }
@@ -101,18 +95,43 @@ export class BrowsingWindow {
     return webContentsView;
   }
 
+  public closeView(viewId?: ViewId): boolean {
+    const item = viewId ? this.views.getItemByKey(viewId) : this.views.current;
+    if (!item) return false;
+    this.switcher.detachView(item.key);
+
+    try {
+      item.value.webContents.stop();
+      this.window.contentView.removeChildView(item.value);
+    } catch {
+      console.error('Failed to remove view from window');
+    }
+
+    if (this.views.size === 1) {
+      this.views.clear();
+      this.window.close();
+      return true;
+    }
+
+    this.views.remove(item.key);
+    item.value.webContents.close();
+    this.displayView(this.views.getCurrentKey()!);
+
+    return true;
+  }
+
   /**
    * Captures the current state of the window, including the views and their properties,
    * and returns a snapshot object representing this state.
    *
-   * @return {WindowSnapshot} A snapshot of the current window state, which includes details
+   * @return {PaneSnapshot} A snapshot of the current window state, which includes details
    * about the views, their navigation history, zoom factor, and audio mute status. The snapshot
-   * also contains the window's identifier, the key of the currently active view, and the order
+   * also contains the window's identifier, the viewId of the currently active view, and the order
    * of the views.
    */
-  public snapshotState(): WindowSnapshot {
+  public snapshotState(): PaneSnapshot {
     const views: ViewSnapshot[] = Array.from(this.views.entries()).map(
-      ([key, view]) => {
+      ([viewId, view]) => {
         const wc = view.webContents;
         const nav = wc.navigationHistory;
         const entries = nav
@@ -120,8 +139,8 @@ export class BrowsingWindow {
           .map((e) => ({ url: e.url, title: e.title }));
 
         return {
-          key,
-          partition: `persist:${key}`,
+          viewId,
+          partition: `persist:${viewId}`,
           zoomFactor: wc.getZoomFactor(),
           isAudioMuted: wc.isAudioMuted(),
           history: {
@@ -133,8 +152,8 @@ export class BrowsingWindow {
     );
 
     return {
-      id: this.name,
-      currentViewKey: this.currentViewKey!,
+      paneId: this.name,
+      currentViewId: this.views.getCurrentKey()!,
       views,
     };
   }
@@ -142,14 +161,14 @@ export class BrowsingWindow {
   /**
    * Restores the application state from the provided snapshot.
    *
-   * @param {WindowSnapshot} snapshot - The snapshot object containing the state to restore, including views and their properties.
+   * @param {PaneSnapshot} snapshot - The snapshot object containing the state to restore, including views and their properties.
    * @return {Promise<void>}
    */
-  public async restoreState(snapshot: WindowSnapshot): Promise<void> {
+  public async restoreState(snapshot: PaneSnapshot): Promise<void> {
     this.views.clear();
 
     for (const viewSnapshot of snapshot.views) {
-      const view = await this.createView(viewSnapshot.key);
+      const view = await this.createView(viewSnapshot.viewId);
       const webContents = view.webContents;
       webContents.setZoomFactor(viewSnapshot.zoomFactor ?? 1);
       webContents.setAudioMuted(viewSnapshot.isAudioMuted ?? false);
@@ -161,6 +180,6 @@ export class BrowsingWindow {
       });
     }
 
-    this.displayView(snapshot.currentViewKey!);
+    this.displayView(snapshot.currentViewId!);
   }
 }

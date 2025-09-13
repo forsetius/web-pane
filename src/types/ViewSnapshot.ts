@@ -1,12 +1,10 @@
-import { TargetBrowsingWindow } from './TargetBrowsingWindow.js';
-
 export interface ViewHistoryEntry {
   url: string;
   title: string;
 }
 
 export interface ViewSnapshot {
-  key: string;
+  viewId: string;
   partition: string;
   zoomFactor?: number;
   isAudioMuted?: boolean;
@@ -16,13 +14,13 @@ export interface ViewSnapshot {
   };
 }
 
-export interface WindowSnapshot {
-  id: TargetBrowsingWindow; // wewn. id okna/pula
-  currentViewKey?: string;
+export interface PaneSnapshot {
+  paneId: string;
+  currentViewId?: string;
   views: ViewSnapshot[];
 }
 
 export interface AppSnapshot {
-  windows: WindowSnapshot[];
-  focusedWindowId?: string | undefined;
+  panes: PaneSnapshot[];
+  focusedPaneId?: string | undefined;
 }

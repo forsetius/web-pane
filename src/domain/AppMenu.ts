@@ -1,4 +1,4 @@
-import { Menu, MenuItemConstructorOptions } from 'electron';
+import { BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
 import { App } from './App.js';
 import { Lang } from '../types/Lang.js';
 import { container } from 'tsyringe';
@@ -27,8 +27,20 @@ export class AppMenu {
             },
           },
           {
-            role: 'close',
+            label: t.get(lang, 'menu.closeView'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+Shift+W' : 'F4',
+            click: (_m, window) => {
+              if (!window) return;
+              this.closeView(window as BrowserWindow);
+            },
+          },
+          {
+            label: t.get(lang, 'menu.closePane'),
             accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Ctrl+F4',
+            click: (_m, window) => {
+              if (!window) return;
+              this.closePane(window);
+            },
           },
           { type: 'separator' },
           {
@@ -141,43 +153,53 @@ export class AppMenu {
   }
 
   private goBack() {
-    const viewHistory = this.app.browserWindows.getActive()?.getCurrentView()
+    const viewHistory = this.app.panes.getActive()?.getCurrentView()
       ?.webContents.navigationHistory;
 
     if (viewHistory?.canGoBack()) viewHistory.goBack();
   }
 
   private goForward() {
-    const viewHistory = this.app.browserWindows.getActive()?.getCurrentView()
+    const viewHistory = this.app.panes.getActive()?.getCurrentView()
       ?.webContents.navigationHistory;
 
     if (viewHistory?.canGoForward()) viewHistory.goForward();
   }
 
   private minimize() {
-    const appWindow = this.app.browserWindows.getActive();
-    if (!appWindow) return;
+    const pane = this.app.panes.getActive();
+    if (!pane) return;
 
-    if (!appWindow.window.isMinimized()) {
-      appWindow.window.minimize();
+    if (!pane.window.isMinimized()) {
+      pane.window.minimize();
     }
   }
 
   private reload() {
-    const appWindow = this.app.browserWindows.getActive();
-    if (!appWindow) return;
+    const pane = this.app.panes.getActive();
+    if (!pane) return;
 
-    appWindow.getCurrentView()?.webContents.reload();
+    pane.getCurrentView()?.webContents.reload();
   }
 
   private reloadUncached() {
-    const appWindow = this.app.browserWindows.getActive();
-    if (!appWindow) return;
+    const pane = this.app.panes.getActive();
+    if (!pane) return;
 
-    appWindow.getCurrentView()?.webContents.reloadIgnoringCache();
+    pane.getCurrentView()?.webContents.reloadIgnoringCache();
   }
 
   private async showPreferencesWindow() {
     await this.app.appWindows.preferences?.show();
+  }
+
+  private closePane(window: Electron.BaseWindow) {
+    window.close();
+  }
+
+  private closeView(window: Electron.BrowserWindow) {
+    const pane = this.app.panes.getById(window.id);
+    if (!pane) return;
+    pane.closeView();
   }
 }

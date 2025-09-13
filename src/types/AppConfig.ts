@@ -1,11 +1,9 @@
 import type { Lang } from './Lang.js';
-import type { TargetBrowsingWindow } from './TargetBrowsingWindow.js';
-import type { WindowState } from './WindowState.js';
+import type { PaneState } from './PaneState.js';
 
 export interface AppConfig {
-  defaultTarget: TargetBrowsingWindow;
   lang: Lang;
-  windows: Record<TargetBrowsingWindow, WindowState>;
+  panes: Record<string, PaneState> & { main: PaneState };
   ui: AppUiConfig;
 }
 

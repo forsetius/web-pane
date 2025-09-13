@@ -9,5 +9,5 @@ if (!app.hasLock) {
 
 void app.electron.whenReady().then(() => {
   app.init();
-  app.handleInvocation(process.argv.slice(2));
+  void app.handleInvocation(process.argv.slice(2));
 });

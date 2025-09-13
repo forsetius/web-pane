@@ -2,14 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { deepmergeIntoCustom } from 'deepmerge-ts';
 import { app } from 'electron';
+import { singleton } from 'tsyringe';
+import colors from 'yoctocolors';
 import { ZodError } from 'zod';
 import { configDefaults } from '../configDefaults.js';
 import { ConfigZodSchema } from '../types/ConfigZodSchema.js';
 import type { AppConfig } from '../types/AppConfig.js';
 import type * as CT from '../types/ConfigTypes.js';
-import { fromZodError } from '../utils/index.js';
 import * as object from '../utils/object.js';
-import { singleton } from 'tsyringe';
 
 @singleton()
 export class ConfigService {
@@ -28,7 +28,14 @@ export class ConfigService {
       return ConfigZodSchema.parse(parsed);
     } catch (e) {
       if (e instanceof ZodError) {
-        throw new Error(fromZodError(e).toString());
+        throw new Error(
+          `
+${colors.red('Zod validation error')}
+${e.message}
+
+Remember to check if the config file at ${colors.yellow(configPath)} is valid for current version of the app.
+          `,
+        );
       }
 
       throw e;

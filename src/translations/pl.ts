@@ -1,11 +1,18 @@
 export default {
   error: {
+    error: 'Błąd',
     unknown: 'Nieznany błąd',
+    url: {
+      invalid: 'Niepoprawny adres URL',
+      nonEmpty: 'Wymagany niepusty adres URL',
+      notHttp: 'Dozwolone tylko protokoły HTTP(S)',
+    },
   },
   menu: {
     app: 'Aplikacja',
     backward: 'Wstecz',
-    closeTab: 'Zamknij (Ctrl+W)',
+    closeView: 'Zamknij stronę',
+    closePane: 'Zamknij okno',
     english: 'Angielski',
     forceReload: 'Wymuś przeładowanie',
     forward: 'Dalej',
