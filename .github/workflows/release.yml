@@ -1,12 +1,19 @@
 name: Release
 
 on:
+  release:
+    types:
+      - published
   push:
     tags:
       - 'v*.*.*'
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   release:
@@ -30,27 +37,78 @@ jobs:
       - name: Use Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: '24'
           cache: 'npm'
 
+      # Cache electron/electron-builder (OS-specific
       - name: Cache electron/electron-builder
+        if: runner.os == 'Linux'
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/electron
             ~/.cache/electron-builder
+          key: ${{ runner.os }}-electron-cache-${{ hashFiles('package-lock.json') }}
+            
+      - name: Cache (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/cache@v4
+        with:
+          path: |
             ~/Library/Caches/electron
             ~/Library/Caches/electron-builder
-            %LOCALAPPDATA%/electron/Cache
-            %LOCALAPPDATA%/electron-builder/Cache
           key: ${{ runner.os }}-electron-cache-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: ${{ runner.os }}-electron-cache-${{ hashFiles('package-lock.json') }}
+
+      # Dependencies
+      # AppImage requires libfuse2
+      - name: Install Linux build deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libfuse2
 
       - name: Install deps
         run: npm ci
 
-      - name: Build app code (TS/bundler)
-        run: |
-          npm run compile --if-present
+      # Build
+      - name: Compile (TS)
+        run: npm run compile --if-present
 
-      - name: Electron build + publish
+      - name: Build (no publish, UI Release)
+        if: github.event_name == 'release'
+        run: npm run dist:ci
+
+      - name: Build & publish (push tag)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         run: npm run dist:release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-pane-${{ matrix.os }}
+          path: |
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.dmg
+            release/**/*.exe
+            release/**/*.zip
+
+      - name: Attach to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.dmg
+            release/**/*.exe
+            release/**/*.zip
