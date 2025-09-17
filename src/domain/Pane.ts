@@ -1,7 +1,8 @@
-import { BrowserWindow, session, WebContentsView } from 'electron';
+import { BrowserWindow, Session, session, WebContentsView } from 'electron';
 import { ViewSnapshot, PaneSnapshot } from '../types/ViewSnapshot.js';
 import { ViewSwitcher } from './ViewSwitcher.js';
 import { RoundRobinList } from '../utils/RoundRobinList.js';
+import { CHROME_UA, CLIENT_HINTS } from '../utils/consts.js';
 
 type ViewId = string;
 
@@ -78,10 +79,14 @@ export class Pane {
     viewId: ViewId,
     url?: string,
   ): Promise<WebContentsView> {
+    const partition = `persist:${viewId}`;
+    const ses = session.fromPartition(partition);
+    this.userAgentSpoof(ses);
+
     const webContentsView = new WebContentsView({
       webPreferences: {
-        partition: `persist:${viewId}`,
-        session: session.fromPartition(`persist:${viewId}`),
+        partition,
+        session: ses,
         contextIsolation: true,
       },
     });
@@ -181,5 +186,37 @@ export class Pane {
     }
 
     this.displayView(snapshot.currentViewId!);
+  }
+
+  private userAgentSpoof(ses: Session) {
+    if (ses.__webpane_ua_spoof_installed) return;
+    ses.__webpane_ua_spoof_installed = true;
+
+    ses.webRequest.onBeforeSendHeaders((details, cb) => {
+      const headers = { ...details.requestHeaders };
+
+      headers['User-Agent'] = CHROME_UA;
+      for (const [k, v] of Object.entries(CLIENT_HINTS)) {
+        headers[k] = v;
+      }
+
+      headers['Upgrade-Insecure-Requests'] =
+        headers['Upgrade-Insecure-Requests'] ?? '1';
+      headers['Accept-Language'] =
+        headers['Accept-Language'] ?? 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7';
+
+      cb({ requestHeaders: headers });
+    });
+
+    ses.setPermissionRequestHandler((_webContents, permission, cb, details) => {
+      if (
+        permission === 'notifications' &&
+        details.requestingUrl.startsWith('https://')
+      ) {
+        cb(true);
+        return;
+      }
+      cb(false);
+    });
   }
 }

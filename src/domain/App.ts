@@ -1,4 +1,4 @@
-import { app, app as electronApp } from 'electron';
+import { app as electronApp } from 'electron';
 import { container } from 'tsyringe';
 import { AppMenu } from './AppMenu.js';
 import { PanePool } from './PanePool.js';
@@ -31,7 +31,7 @@ export class App {
   }
 
   public constructor() {
-    const rawArgv = process.argv.slice(app.isPackaged ? 1 : 2);
+    const rawArgv = process.argv.slice(electronApp.isPackaged ? 1 : 2);
 
     electronApp.commandLine.appendSwitch('log-level', '3');
 
