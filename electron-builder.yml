@@ -2,9 +2,9 @@ appId: pl.forseti.webpane
 productName: Web-Pane
 
 files:
+  - "assets/**/*"
   - "dist/**/*"
   - "package.json"
-  - "README.md"
   - "build/icons/**/*"
 
 asar: true
