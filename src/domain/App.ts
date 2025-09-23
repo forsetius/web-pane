@@ -1,5 +1,5 @@
 import { app as electronApp } from 'electron';
-import { container } from 'tsyringe';
+import { container, singleton } from 'tsyringe';
 import { AppMenu } from './AppMenu.js';
 import { PanePool } from './PanePool.js';
 import { ConfigService } from './ConfigService.js';
@@ -7,14 +7,23 @@ import { Lang } from '../types/Lang.js';
 import { PreferencesWindow } from './appWindows/PreferencesWindow.js';
 import { parseCli } from '../parseCli.js';
 import { quitWithFatalError } from '../utils/error.js';
+import { OpenViewWindow } from './appWindows/OpenViewWindow.js';
+import { TranslationService } from './TranslationService.js';
+// import { AboutWindow } from './appWindows/AboutWindow.js';
+// import { LocalPageWindow } from './appWindows/LocalPageWindow.js';
 
+@singleton()
 export class App {
   public readonly hasLock: boolean;
   public readonly electron: typeof electronApp;
   public _appMenu: AppMenu | undefined = undefined;
   public _panes: PanePool | undefined = undefined;
   public configService!: ConfigService;
+  public translationService!: TranslationService;
   public readonly appWindows: AppWindows = {
+    // about: undefined,
+    // localPage: undefined,
+    openView: undefined,
     preferences: undefined,
   };
 
@@ -54,10 +63,14 @@ export class App {
       console.error(e);
       quitWithFatalError(electronApp, 'Failed to load config.');
     }
+    this.translationService = container.resolve(TranslationService);
   }
 
   public init() {
-    this._appMenu = new AppMenu(this);
+    this.translationService.registerIpc();
+
+    // this.appWindows.about = new AboutWindow();
+    // this.appWindows.localPage = new LocalPageWindow();
     this.appWindows.preferences = new PreferencesWindow(
       (ui) => {
         this.panes.applyUi(ui);
@@ -66,6 +79,10 @@ export class App {
         await this.panes.recreateWindows();
       },
     );
+
+    this.appWindows.openView = new OpenViewWindow(this);
+
+    this._appMenu = new AppMenu(this);
     electronApp.on('before-quit', () =>
       this.appWindows.preferences?.setQuitting(true),
     );
@@ -116,5 +133,8 @@ export class App {
 }
 
 interface AppWindows {
+  // about: AboutWindow | undefined;
+  // localPage: LocalPageWindow | undefined;
+  openView: OpenViewWindow | undefined;
   preferences: PreferencesWindow | undefined;
 }

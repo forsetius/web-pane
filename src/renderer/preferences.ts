@@ -1,18 +1,5 @@
-import type { AppUiConfig } from '../types/AppConfig.js';
 import type { PreferencesWindowTranslations } from '../types/TranslationStrings.js';
-
-declare global {
-  interface Window {
-    prefsAPI: {
-      get(): Promise<AppUiConfig>;
-      set(patch: Partial<AppUiConfig>): void;
-      t(key: keyof PreferencesWindowTranslations): Promise<string>;
-      info: {
-        platform: NodeJS.Platform;
-      };
-    };
-  }
-}
+import { getTyped } from '../utils/object.js';
 
 const qs = <T extends Element>(selector: string): T =>
   document.querySelector(selector)!;
@@ -29,37 +16,49 @@ const translations: Record<string, keyof PreferencesWindowTranslations> = {
 };
 
 async function main() {
-  for (const [id, translationKey] of Object.entries(translations)) {
-    qs(id).textContent = await window.prefsAPI.t(translationKey);
-  }
-  qs<HTMLDivElement>('#showInWindowListHint').hidden =
-    window.prefsAPI.info.platform !== 'linux';
+  const t = await window.i18n.bundle();
 
-  const prefs = await window.prefsAPI.get();
+  for (const [id, translationKey] of Object.entries(translations)) {
+    const value = getTyped(
+      t,
+      `windows.preferences.${translationKey}`,
+    ) as unknown;
+    qs(id).textContent = typeof value === 'string' ? value : '';
+  }
+
+  qs<HTMLDivElement>('#showInWindowListHint').hidden =
+    window.preferences.info.platform !== 'linux';
+
+  const prefs = await window.preferences.get();
   qs<HTMLInputElement>('#showInWindowList').checked = prefs.showInWindowList;
   qs<HTMLInputElement>('#showWindowFrame').checked = prefs.showWindowFrame;
   qs<HTMLInputElement>('#showAppMenu').checked = prefs.showAppMenu;
 
   qs('#showInWindowList').addEventListener('change', (e) => {
-    window.prefsAPI.set({
+    window.preferences.set({
       showInWindowList: (e.target as HTMLInputElement).checked,
     });
   });
 
   qs('#showWindowFrame').addEventListener('change', (e) => {
-    window.prefsAPI.set({
+    window.preferences.set({
       showWindowFrame: (e.target as HTMLInputElement).checked,
     });
   });
 
   qs('#showAppMenu').addEventListener('change', (e) => {
-    window.prefsAPI.set({
+    window.preferences.set({
       showAppMenu: (e.target as HTMLInputElement).checked,
     });
   });
 
-  qs('#closeBtn').addEventListener('click', () => {
+  const close = () => {
     window.close();
+  };
+  qs('#btnClose').addEventListener('click', close);
+  qs('#btnCloseB').addEventListener('click', close);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.close();
   });
 }
 

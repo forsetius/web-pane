@@ -5,6 +5,7 @@ import { ConfigService } from './domain/ConfigService.js';
 import { TranslationService } from './domain/TranslationService.js';
 import { InvalidUrlException } from './exceptions/InvalidUrlException.js';
 import colors from 'yoctocolors';
+import { makeId } from './utils/makeId.js';
 
 export type CliOutputArgs =
   | {
@@ -71,10 +72,4 @@ export function parseCli(argv: string[]) {
     .version()
     .help()
     .parseSync() as CliOutputArgs;
-}
-
-function makeId(url: string) {
-  const u = new URL(url);
-
-  return u.hostname;
 }

@@ -17,21 +17,24 @@ export class AppMenu {
     const t = this.translationService;
     const template: MenuItemConstructorOptions[] = [
       {
-        label: t.get(lang, 'menu.app'),
+        label: t.get(lang, 'menu.pane'),
         submenu: [
           {
-            label: t.get(lang, 'menu.minimize'),
-            accelerator: 'Alt+Down',
+            label: t.get(lang, 'menu.newPane'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+N' : 'Ctrl+N',
             click: () => {
-              this.minimize();
+              this.newPane();
             },
           },
           {
-            label: t.get(lang, 'menu.closeView'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+Shift+W' : 'F4',
+            label: t.get(lang, 'menu.switchPane'),
+            accelerator:
+              process.platform === 'darwin'
+                ? 'Cmd+Shift+Tab'
+                : 'Ctrl+Shift+Tab',
             click: (_m, window) => {
               if (!window) return;
-              this.closeView(window as BrowserWindow);
+              this.openView();
             },
           },
           {
@@ -44,9 +47,77 @@ export class AppMenu {
           },
           { type: 'separator' },
           {
+            label: t.get(lang, 'menu.preferences'),
+            accelerator: 'F10',
+            click: () => {
+              void this.showPreferencesWindow();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: 'Minimize',
+            accelerator: 'Alt+Down',
+            click: () => {
+              this.minimize();
+            },
+          },
+          {
             role: 'quit',
             label: t.get(lang, 'menu.quit'),
             accelerator: 'Alt+F4',
+          },
+        ],
+      },
+      {
+        label: t.get(lang, 'menu.page'),
+        submenu: [
+          {
+            label: t.get(lang, 'menu.openView'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
+            click: (_m, window) => {
+              if (!window) return;
+              this.openView();
+            },
+          },
+          {
+            label: t.get(lang, 'menu.switchView'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+Tab' : 'Ctrl+Tab',
+            click: (_m, window) => {
+              if (!window) return;
+              this.openView();
+            },
+          },
+          {
+            label: t.get(lang, 'menu.moveViewToPane'),
+            accelerator: 'F6',
+            click: (_m, window) => {
+              if (!window) return;
+              this.openView();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: t.get(lang, 'menu.backward'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Alt+Left',
+            click: () => {
+              this.goBack();
+            },
+          },
+          {
+            label: t.get(lang, 'menu.forward'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Alt+Right',
+            click: () => {
+              this.goForward();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: t.get(lang, 'menu.closeView'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+Shift+W' : 'F4',
+            click: (_m, window) => {
+              if (!window) return;
+              this.closeView(window as BrowserWindow);
+            },
           },
         ],
       },
@@ -70,11 +141,6 @@ export class AppMenu {
           },
           { type: 'separator' },
           {
-            role: 'resetZoom',
-            label: t.get(lang, 'menu.resetZoom'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+0' : 'Ctrl+0',
-          },
-          {
             role: 'zoomIn',
             label: t.get(lang, 'menu.zoomIn'),
             accelerator:
@@ -85,13 +151,10 @@ export class AppMenu {
             label: t.get(lang, 'menu.zoomOut'),
             accelerator: process.platform === 'darwin' ? 'Cmd+-' : 'Ctrl+-',
           },
-          { type: 'separator' },
           {
-            label: t.get(lang, 'menu.preferences'),
-            accelerator: 'F10',
-            click: () => {
-              void this.showPreferencesWindow();
-            },
+            role: 'resetZoom',
+            label: t.get(lang, 'menu.resetZoom'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+0' : 'Ctrl+0',
           },
           { type: 'separator' },
           {
@@ -104,42 +167,19 @@ export class AppMenu {
         ],
       },
       {
-        label: t.get(lang, 'menu.navigation'),
+        label: t.get(lang, 'menu.help'),
         submenu: [
           {
-            label: t.get(lang, 'menu.backward'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Alt+Left',
-            click: () => {
-              this.goBack();
-            },
+            label: t.get(lang, 'menu.instruction'),
+            // click: () => {
+            //   void this.showLocalPageWindow(`readme-${lang}.html`);
+            // },
           },
           {
-            label: t.get(lang, 'menu.forward'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Alt+Right',
-            click: () => {
-              this.goForward();
-            },
-          },
-        ],
-      },
-      {
-        label: t.get(lang, 'menu.language'),
-        submenu: [
-          {
-            label: t.get(lang, 'menu.polish'),
-            type: 'radio',
-            checked: this.configService.get('lang') === Lang.PL,
-            click: () => {
-              this.changeLanguage(Lang.PL);
-            },
-          },
-          {
-            label: t.get(lang, 'menu.english'),
-            type: 'radio',
-            checked: this.configService.get('lang') === Lang.EN,
-            click: () => {
-              this.changeLanguage(Lang.EN);
-            },
+            label: t.get(lang, 'menu.about'),
+            // click: () => {
+            //   void this.showAboutWindow();
+            // },
           },
         ],
       },
@@ -148,8 +188,14 @@ export class AppMenu {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   }
 
-  private changeLanguage(lang: Lang) {
-    this.app.changeLanguage(lang);
+  private closePane(window: Electron.BaseWindow) {
+    window.close();
+  }
+
+  private closeView(window: Electron.BrowserWindow) {
+    const pane = this.app.panes.getById(window.id);
+    if (!pane) return;
+    pane.closeView();
   }
 
   private goBack() {
@@ -175,6 +221,14 @@ export class AppMenu {
     }
   }
 
+  private newPane() {
+    this.app.panes.createWindow('left'); // TODO - make this configurable
+  }
+
+  private openView() {
+    void this.app.appWindows.openView?.show();
+  }
+
   private reload() {
     const pane = this.app.panes.getActive();
     if (!pane) return;
@@ -189,17 +243,15 @@ export class AppMenu {
     pane.getCurrentView()?.webContents.reloadIgnoringCache();
   }
 
+  // private async showAboutWindow() {
+  //   await this.app.appWindows.about?.show();
+  // }
+  //
+  // private async showLocalPageWindow(page: string) {
+  //   await this.app.appWindows.localPage?.show(`../../assets/${page}`);
+  // }
+
   private async showPreferencesWindow() {
     await this.app.appWindows.preferences?.show();
-  }
-
-  private closePane(window: Electron.BaseWindow) {
-    window.close();
-  }
-
-  private closeView(window: Electron.BrowserWindow) {
-    const pane = this.app.panes.getById(window.id);
-    if (!pane) return;
-    pane.closeView();
   }
 }

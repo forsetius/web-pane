@@ -1,20 +1,28 @@
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
+import { ipcMain } from 'electron';
+import { container, singleton } from 'tsyringe';
 import { Lang } from '../types/Lang.js';
 import { TranslationStrings } from '../types/TranslationStrings.js';
 import type { StrictRecord } from '../types/types.js';
 import type * as CT from '../types/ConfigTypes.js';
 import * as object from '../utils/object.js';
-import { singleton } from 'tsyringe';
+import { ConfigService } from './ConfigService.js';
 
-const importSyncDefault = <T>(path: string): T => {
+const importSync = <T>(path: string, varName: string): T => {
   const require = createRequire(import.meta.url);
-  return (require(path) as { default: T }).default;
+  const val = (require(path) as { [varName]: T })[varName];
+  if (!val) {
+    throw new Error(`Failed to import ${path}`);
+  }
+
+  return val;
 };
 
 @singleton()
 export class TranslationService {
+  private readonly configService = container.resolve(ConfigService);
   private readonly store: StrictRecord<Lang, TranslationStrings>;
 
   public constructor() {
@@ -29,7 +37,7 @@ export class TranslationService {
 
           return [
             lang as Lang,
-            importSyncDefault<TranslationStrings>(filepath),
+            importSync<TranslationStrings>(filepath, 'translations'),
           ];
         }),
     ) as Record<Lang, TranslationStrings>;
@@ -48,5 +56,32 @@ export class TranslationService {
     key: P,
   ): CT.PathValue<TranslationStrings, P> {
     return object.getTyped(this.store[lang], key);
+  }
+
+  public registerIpc(): void {
+    ipcMain.removeHandler('i18n:t');
+    ipcMain.handle(
+      'i18n:t',
+      (_e, key: CT.DotPath<TranslationStrings>, lang?: Lang) => {
+        const language = lang ?? this.configService.get('lang');
+        this.assertLang(language);
+
+        return this.get(language, key);
+      },
+    );
+
+    ipcMain.removeHandler('i18n:bundle');
+    ipcMain.handle('i18n:bundle', (_e, lang?: Lang) => {
+      const language = lang ?? this.configService.get('lang');
+      this.assertLang(language);
+
+      return this.store[language];
+    });
+  }
+
+  private assertLang(lang: Lang): void {
+    if (!(lang in this.store)) {
+      throw new Error(`Unknown language: ${lang satisfies string}`);
+    }
   }
 }

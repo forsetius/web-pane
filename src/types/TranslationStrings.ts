@@ -2,6 +2,10 @@ export interface TranslationStrings {
   error: ErrorTranslations;
   menu: MenuTranslations;
   windows: {
+    about: AboutWindowTranslations;
+    moveViewToPane: MoveViewToPaneWindowTranslations;
+    newPane: NewPaneWindowTranslations;
+    openView: OpenViewWindowTranslations;
     preferences: PreferencesWindowTranslations;
     switcher: {
       hint: string;
@@ -20,32 +24,90 @@ export interface ErrorTranslations {
 }
 
 export interface MenuTranslations {
-  backward: string;
-  closeView: string;
-  closePane: string;
-  english: string;
-  app: string;
-  forceReload: string;
-  forward: string;
-  language: string;
+  // Menu Pane
+  pane: string;
   minimize: string;
-  navigation: string;
-  nextView: string;
-  polish: string;
+  newPane: string;
+  switchPane: string;
+  closePane: string;
   preferences: string;
-  previousView: string;
+  minimizeAll: string;
   quit: string;
-  reload: string;
-  resetZoom: string;
-  toggleDevTools: string;
-  toggleFullscreen: string;
+
+  // Menu Page
+  page: string;
+  openView: string;
+  switchView: string;
+  moveViewToPane: string;
+  backward: string;
+  forward: string;
+  closeView: string;
+
+  // Menu View
   view: string;
+  reload: string;
+  forceReload: string;
   zoomIn: string;
   zoomOut: string;
+  resetZoom: string;
+
+  // Menu Help
+  help: string;
+  instruction: string;
+  about: string;
+}
+
+export interface AboutWindowTranslations {
+  title: string;
+}
+
+export interface MoveViewToPaneWindowTranslations {
+  title: string;
+  existing: string;
+  existingHelp: string;
+  existingError: string;
+  new: string;
+  newPlaceholder: string;
+  newError: string;
+}
+
+export interface NewPaneWindowTranslations {
+  name: string;
+}
+
+export interface OpenViewWindowTranslations {
+  title: string;
+  url: {
+    label: string;
+    placeholder: string;
+    error: string;
+  };
+  more: string;
+  id: {
+    label: string;
+    placeholder: string;
+    error: string;
+  };
+  pane: {
+    title: string;
+    current: string;
+    existing: string;
+    existingError: string;
+    new: string;
+    newPlaceholder: string;
+    newError: string;
+  };
+  command: {
+    open: string;
+    cancel: string;
+  };
 }
 
 export interface PreferencesWindowTranslations {
   title: string;
+  language: string;
+  polish: string;
+  english: string;
   showAppMenu: string;
   showWindowFrame: string;
   windowReloadNeededHint: string;
