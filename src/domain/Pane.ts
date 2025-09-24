@@ -29,6 +29,10 @@ export class Pane {
     return this.views.getCurrent();
   }
 
+  public getCurrentViewId(): ViewId | undefined {
+    return this.views.getCurrentKey();
+  }
+
   public hasViewId(viewId: ViewId): boolean {
     return this.views.has(viewId);
   }
@@ -125,6 +129,28 @@ export class Pane {
     return true;
   }
 
+  public snapshotViewState(viewId: ViewId): ViewSnapshot {
+    const view = this.views.get(viewId);
+    if (!view) throw new Error(`View ${viewId} not found`);
+
+    const wc = view.webContents;
+    const nav = wc.navigationHistory;
+    const entries = nav
+      .getAllEntries()
+      .map((e) => ({ url: e.url, title: e.title }));
+
+    return {
+      viewId,
+      partition: `persist:${viewId}`,
+      zoomFactor: wc.getZoomFactor(),
+      isAudioMuted: wc.isAudioMuted(),
+      history: {
+        index: nav.getActiveIndex(),
+        entries,
+      },
+    };
+  }
+
   /**
    * Captures the current state of the window, including the views and their properties,
    * and returns a snapshot object representing this state.
@@ -134,26 +160,9 @@ export class Pane {
    * also contains the window's identifier, the viewId of the currently active view, and the order
    * of the views.
    */
-  public snapshotState(): PaneSnapshot {
-    const views: ViewSnapshot[] = Array.from(this.views.entries()).map(
-      ([viewId, view]) => {
-        const wc = view.webContents;
-        const nav = wc.navigationHistory;
-        const entries = nav
-          .getAllEntries()
-          .map((e) => ({ url: e.url, title: e.title }));
-
-        return {
-          viewId,
-          partition: `persist:${viewId}`,
-          zoomFactor: wc.getZoomFactor(),
-          isAudioMuted: wc.isAudioMuted(),
-          history: {
-            index: nav.getActiveIndex(),
-            entries,
-          },
-        };
-      },
+  public snapshotPaneState(): PaneSnapshot {
+    const views: ViewSnapshot[] = Array.from(this.views.keys()).map((viewId) =>
+      this.snapshotViewState(viewId),
     );
 
     return {
@@ -163,26 +172,36 @@ export class Pane {
     };
   }
 
+  public async restoreViewState(
+    viewSnapshot: ViewSnapshot,
+    show = true,
+  ): Promise<void> {
+    const view = await this.createView(viewSnapshot.viewId);
+    const webContents = view.webContents;
+    webContents.setZoomFactor(viewSnapshot.zoomFactor ?? 1);
+    webContents.setAudioMuted(viewSnapshot.isAudioMuted ?? false);
+
+    await webContents.navigationHistory.restore({
+      index: viewSnapshot.history.index,
+      entries: viewSnapshot.history.entries,
+    });
+
+    if (show) {
+      this.displayView(viewSnapshot.viewId);
+    }
+  }
+
   /**
    * Restores the application state from the provided snapshot.
    *
    * @param {PaneSnapshot} snapshot - The snapshot object containing the state to restore, including views and their properties.
    * @return {Promise<void>}
    */
-  public async restoreState(snapshot: PaneSnapshot): Promise<void> {
+  public async restorePaneState(snapshot: PaneSnapshot): Promise<void> {
     this.views.clear();
 
     for (const viewSnapshot of snapshot.views) {
-      const view = await this.createView(viewSnapshot.viewId);
-      const webContents = view.webContents;
-      webContents.setZoomFactor(viewSnapshot.zoomFactor ?? 1);
-      webContents.setAudioMuted(viewSnapshot.isAudioMuted ?? false);
-
-      const nav = webContents.navigationHistory;
-      await nav.restore({
-        index: viewSnapshot.history.index,
-        entries: viewSnapshot.history.entries,
-      });
+      await this.restoreViewState(viewSnapshot, false);
     }
 
     this.displayView(snapshot.currentViewId!);

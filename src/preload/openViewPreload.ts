@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { makeId } from '../utils/makeId.js';
 import './commonDialogPreload.cjs';
 import { OpenViewPaneChoice, OpenViewPayload } from '../types/OpenView.js';
+import { PanesInfo } from '../types/PanesInfo.js';
 
 contextBridge.exposeInMainWorld('openView', {
   getPanes: async (): Promise<{ current: string; panes: string[] }> => {
@@ -15,8 +16,6 @@ contextBridge.exposeInMainWorld('openView', {
     return validateWithPanes(candidate, panesInfo);
   },
 });
-
-type PanesInfo = { current: string; panes: string[] };
 
 type Candidate = {
   url: string;

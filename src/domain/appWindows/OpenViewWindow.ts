@@ -9,7 +9,6 @@ export class OpenViewWindow extends BaseDialogWindow {
 
   public constructor(private readonly app: App) {
     super();
-    this.registerIpc();
   }
 
   public override async createWindow(): Promise<void> {
@@ -23,14 +22,7 @@ export class OpenViewWindow extends BaseDialogWindow {
   }
 
   protected registerIpc() {
-    if (ipcMain.listenerCount('app:list-panes') > 0) return;
-
-    ipcMain.handle('app:list-panes', () => {
-      const panes = this.app.panes.pool.keys().toArray();
-      const current = this.app.panes.getActive()?.name ?? 'main';
-
-      return { current, panes };
-    });
+    if (ipcMain.listenerCount('app:open-url') > 0) return;
 
     ipcMain.on(
       'app:open-url',

@@ -41,7 +41,16 @@ export const translations: TranslationStrings = {
       title: 'O Web-pane',
     },
     newPane: {
-      name: 'Nazwa',
+      title: 'Nowe okienko',
+      id: {
+        label: 'ID',
+        placeholder: 'np. example-com',
+        error: 'Nieprawidłowe ID.',
+      },
+      command: {
+        cancel: 'Anuluj',
+        open: 'Otwórz',
+      },
     },
     openView: {
       title: 'Otwórz widok',
@@ -84,14 +93,19 @@ export const translations: TranslationStrings = {
     switcher: {
       hint: 'Trzymaj Ctrl, naciskaj Tab / Shift+Tab. Puść Ctrl, aby wybrać.',
     },
-    moveViewToPane: {
-      title: 'Przenieś stronę do okienka',
-      existing: 'w okienku…',
-      existingHelp: 'Dostępne, jeśli otwartych jest więcej niż jedno okno.',
-      existingError: 'Wybierz okienko z listy.',
-      new: 'w nowym okienku',
-      newPlaceholder: 'np. praca',
-      newError: 'Podaj nazwę nowego okienka.',
+    moveView: {
+      title: 'Przenieś widok',
+      pane: {
+        existing: 'do okienka:',
+        existingError: 'Wybierz okienko z listy.',
+        new: 'do nowego okienka',
+        newPlaceholder: 'np. praca',
+        newError: 'Podaj nazwę nowego okienka.',
+      },
+      command: {
+        cancel: 'Anuluj',
+        open: 'Otwórz',
+      },
     },
   },
 };

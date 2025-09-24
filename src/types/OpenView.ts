@@ -9,8 +9,3 @@ export interface OpenViewPayload {
   id: string;
   paneName: string;
 }
-
-export interface PanesInfo {
-  current: string;
-  panes: string[];
-}

@@ -12,6 +12,10 @@ export abstract class BaseDialogWindow {
     this.isQuitting = flag;
   }
 
+  public constructor() {
+    this.registerIpc();
+  }
+
   public async show(): Promise<void> {
     if (!this.window || this.window.isDestroyed()) {
       await this.createWindow();

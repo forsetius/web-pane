@@ -20,7 +20,6 @@ export class PreferencesWindow extends BaseDialogWindow {
     private readonly recreateFn: () => Promise<void>,
   ) {
     super();
-    this.registerIpc();
   }
 
   protected registerIpc(): void {

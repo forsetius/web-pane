@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 import { Pane } from './Pane.js';
 import { ConfigService } from './ConfigService.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
@@ -8,6 +8,11 @@ import { container } from 'tsyringe';
 export class PanePool {
   private readonly configService = container.resolve(ConfigService);
   public readonly pool = new Map<string, Pane>();
+  private _currentPaneId: string | undefined = undefined;
+
+  public constructor() {
+    this.registerIpc();
+  }
 
   public get(windowName: string) {
     return this.pool.get(windowName);
@@ -21,12 +26,12 @@ export class PanePool {
     return undefined;
   }
 
-  public getActive(): Pane | undefined {
-    for (const [, pane] of this.pool) {
-      if (pane.window.isFocused()) return pane;
-    }
+  get currentPaneId() {
+    return this._currentPaneId;
+  }
 
-    return undefined;
+  public getCurrent(): Pane | undefined {
+    return this._currentPaneId ? this.get(this._currentPaneId) : undefined;
   }
 
   public createWindow(target: string) {
@@ -71,6 +76,9 @@ export class PanePool {
     });
     window.on('move', persistGeometry);
     window.on('always-on-top-changed', persistGeometry);
+    window.on('focus', () => {
+      this._currentPaneId = target;
+    });
 
     const appWindow = new Pane(target, window);
     this.configService.save({
@@ -117,14 +125,23 @@ export class PanePool {
   private snapshotState(): AppSnapshot {
     return {
       panes: Array.from(
-        this.pool.values().map((window) => window.snapshotState()),
+        this.pool.values().map((window) => window.snapshotPaneState()),
       ),
-      focusedPaneId: this.getActive()?.name,
+      focusedPaneId: this.getCurrent()?.name,
     };
   }
 
   private async restoreWindow(snapshot: PaneSnapshot) {
     const window = this.createWindow(snapshot.paneId);
-    await window.restoreState(snapshot);
+    await window.restorePaneState(snapshot);
+  }
+
+  private registerIpc(): void {
+    ipcMain.handle('app:list-panes', () => {
+      const panes = this.pool.keys().toArray();
+      const current = this.getCurrent()?.name ?? 'main';
+
+      return { current, panes };
+    });
   }
 }

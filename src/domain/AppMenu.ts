@@ -27,17 +27,6 @@ export class AppMenu {
             },
           },
           {
-            label: t.get(lang, 'menu.switchPane'),
-            accelerator:
-              process.platform === 'darwin'
-                ? 'Cmd+Shift+Tab'
-                : 'Ctrl+Shift+Tab',
-            click: (_m, window) => {
-              if (!window) return;
-              this.openView();
-            },
-          },
-          {
             label: t.get(lang, 'menu.closePane'),
             accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Ctrl+F4',
             click: (_m, window) => {
@@ -74,25 +63,15 @@ export class AppMenu {
           {
             label: t.get(lang, 'menu.openView'),
             accelerator: process.platform === 'darwin' ? 'Cmd+O' : 'Ctrl+O',
-            click: (_m, window) => {
-              if (!window) return;
-              this.openView();
-            },
-          },
-          {
-            label: t.get(lang, 'menu.switchView'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+Tab' : 'Ctrl+Tab',
-            click: (_m, window) => {
-              if (!window) return;
+            click: () => {
               this.openView();
             },
           },
           {
             label: t.get(lang, 'menu.moveViewToPane'),
-            accelerator: 'F6',
-            click: (_m, window) => {
-              if (!window) return;
-              this.openView();
+            accelerator: process.platform === 'darwin' ? 'Cmd+M' : 'Ctrl+M',
+            click: () => {
+              this.moveView();
             },
           },
           { type: 'separator' },
@@ -156,14 +135,6 @@ export class AppMenu {
             label: t.get(lang, 'menu.resetZoom'),
             accelerator: process.platform === 'darwin' ? 'Cmd+0' : 'Ctrl+0',
           },
-          { type: 'separator' },
-          {
-            label: 'DevTools',
-            accelerator: 'F12',
-            click: () => {
-              this.app.toggleFocusedDevTools(true);
-            },
-          },
         ],
       },
       {
@@ -199,21 +170,21 @@ export class AppMenu {
   }
 
   private goBack() {
-    const viewHistory = this.app.panes.getActive()?.getCurrentView()
+    const viewHistory = this.app.panes.getCurrent()?.getCurrentView()
       ?.webContents.navigationHistory;
 
     if (viewHistory?.canGoBack()) viewHistory.goBack();
   }
 
   private goForward() {
-    const viewHistory = this.app.panes.getActive()?.getCurrentView()
+    const viewHistory = this.app.panes.getCurrent()?.getCurrentView()
       ?.webContents.navigationHistory;
 
     if (viewHistory?.canGoForward()) viewHistory.goForward();
   }
 
   private minimize() {
-    const pane = this.app.panes.getActive();
+    const pane = this.app.panes.getCurrent();
     if (!pane) return;
 
     if (!pane.window.isMinimized()) {
@@ -221,8 +192,12 @@ export class AppMenu {
     }
   }
 
+  private moveView() {
+    void this.app.appWindows.moveView?.show();
+  }
+
   private newPane() {
-    this.app.panes.createWindow('left'); // TODO - make this configurable
+    void this.app.appWindows.newPane?.show();
   }
 
   private openView() {
@@ -230,14 +205,14 @@ export class AppMenu {
   }
 
   private reload() {
-    const pane = this.app.panes.getActive();
+    const pane = this.app.panes.getCurrent();
     if (!pane) return;
 
     pane.getCurrentView()?.webContents.reload();
   }
 
   private reloadUncached() {
-    const pane = this.app.panes.getActive();
+    const pane = this.app.panes.getCurrent();
     if (!pane) return;
 
     pane.getCurrentView()?.webContents.reloadIgnoringCache();

@@ -9,6 +9,8 @@ import { parseCli } from '../parseCli.js';
 import { quitWithFatalError } from '../utils/error.js';
 import { OpenViewWindow } from './appWindows/OpenViewWindow.js';
 import { TranslationService } from './TranslationService.js';
+import { NewPaneWindow } from './appWindows/NewPaneWindow.js';
+import { MoveViewWindow } from './appWindows/MoveViewWindow.js';
 // import { AboutWindow } from './appWindows/AboutWindow.js';
 // import { LocalPageWindow } from './appWindows/LocalPageWindow.js';
 
@@ -23,6 +25,8 @@ export class App {
   public readonly appWindows: AppWindows = {
     // about: undefined,
     // localPage: undefined,
+    moveView: undefined,
+    newPane: undefined,
     openView: undefined,
     preferences: undefined,
   };
@@ -80,6 +84,8 @@ export class App {
       },
     );
 
+    this.appWindows.moveView = new MoveViewWindow(this);
+    this.appWindows.newPane = new NewPaneWindow(this);
     this.appWindows.openView = new OpenViewWindow(this);
 
     this._appMenu = new AppMenu(this);
@@ -117,24 +123,13 @@ export class App {
 
     this.appMenu.build(lang);
   }
-
-  public toggleFocusedDevTools(detach = true): void {
-    const activeView = this.appWindows.preferences?.window;
-    const wc = activeView?.webContents;
-
-    if (!wc) return;
-
-    if (wc.isDevToolsOpened()) {
-      wc.closeDevTools();
-    } else {
-      wc.openDevTools({ mode: detach ? 'detach' : 'right' });
-    }
-  }
 }
 
 interface AppWindows {
   // about: AboutWindow | undefined;
   // localPage: LocalPageWindow | undefined;
+  moveView: MoveViewWindow | undefined;
+  newPane: NewPaneWindow | undefined;
   openView: OpenViewWindow | undefined;
   preferences: PreferencesWindow | undefined;
 }

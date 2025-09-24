@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pl" data-bs-theme="light">
+<head>
+    <title id="docTitle" data-i18n="newPane.title"></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="stylesheet" href="../../assets/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../assets/appWindows.css" />
+    <script type="module" src="../../assets/motif.js"></script>
+</head>
+<body>
+<div class="window">
+    <!-- TITLE BAR -->
+    <header class="window__header">
+        <h1 class="window__title" id="newPaneTitle" data-i18n="newPane.title"></h1>
+        <button type="button" class="btn btn-close window__close" id="btnClose"
+                aria-label="Zamknij" data-i18n-aria-label="common.close"></button>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="window__main">
+        <form id="newPaneForm" class="form-grid" novalidate>
+            <div class="form-row">
+                <label id="newPaneIdLabel" for="newPaneId" class="form-label"></label>
+                <div>
+                    <input type="text" class="form-control" id="newPaneId" name="url" required />
+                    <div class="invalid-feedback" id="newPaneIdError"></div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- BUTTON BAR -->
+    <footer class="window__footer">
+        <button type="button" class="btn btn-secondary" id="btnCancel"></button>
+        <button type="submit" form="newPaneForm" class="btn btn-primary" id="btnSubmit" disabled></button>
+    </footer>
+</div>
+
+<script src="../../assets/bootstrap.bundle.min.js"></script>
+<script type="module" src="./newPane.js"></script>
+</body>
+</html>

@@ -41,7 +41,16 @@ export const translations: TranslationStrings = {
       title: 'About',
     },
     newPane: {
-      name: 'Name',
+      title: 'New pane',
+      id: {
+        label: 'ID',
+        placeholder: 'eg. example.com',
+        error: 'Invalid ID',
+      },
+      command: {
+        cancel: 'Cancel',
+        open: 'Open',
+      },
     },
     openView: {
       title: 'Open view',
@@ -84,14 +93,19 @@ export const translations: TranslationStrings = {
     switcher: {
       hint: 'Hold Ctrl, press Tab / Shift+Tab. Release Ctrl to select.',
     },
-    moveViewToPane: {
-      title: 'Move page to pane',
-      existing: 'in existing pane…',
-      existingHelp: 'Available if more than one pane exists.',
-      existingError: 'Choose one from the list',
-      new: 'in a new pane',
-      newPlaceholder: 'work',
-      newError: 'Enter the name for a new pane',
+    moveView: {
+      title: 'Move view',
+      pane: {
+        existing: 'to the existing pane:',
+        existingError: 'Choose one from the list',
+        new: 'to a new pane',
+        newPlaceholder: 'eg. work',
+        newError: 'Enter the name for a new pane',
+      },
+      command: {
+        cancel: 'Cancel',
+        open: 'Open',
+      },
     },
   },
 };

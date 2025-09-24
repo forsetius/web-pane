@@ -3,7 +3,7 @@ export interface TranslationStrings {
   menu: MenuTranslations;
   windows: {
     about: AboutWindowTranslations;
-    moveViewToPane: MoveViewToPaneWindowTranslations;
+    moveView: MoveViewWindowTranslations;
     newPane: NewPaneWindowTranslations;
     openView: OpenViewWindowTranslations;
     preferences: PreferencesWindowTranslations;
@@ -61,18 +61,32 @@ export interface AboutWindowTranslations {
   title: string;
 }
 
-export interface MoveViewToPaneWindowTranslations {
+export interface MoveViewWindowTranslations {
   title: string;
-  existing: string;
-  existingHelp: string;
-  existingError: string;
-  new: string;
-  newPlaceholder: string;
-  newError: string;
+  pane: {
+    existing: string;
+    existingError: string;
+    new: string;
+    newPlaceholder: string;
+    newError: string;
+  };
+  command: {
+    open: string;
+    cancel: string;
+  };
 }
 
 export interface NewPaneWindowTranslations {
-  name: string;
+  title: string;
+  id: {
+    label: string;
+    placeholder: string;
+    error: string;
+  };
+  command: {
+    open: string;
+    cancel: string;
+  };
 }
 
 export interface OpenViewWindowTranslations {
