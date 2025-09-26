@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron';
+import { app as electronApp, BrowserWindow, ipcMain } from 'electron';
 import { Pane } from './Pane.js';
 import { ConfigService } from './ConfigService.js';
 import type { AppUiConfig } from '../types/AppConfig.js';
@@ -9,6 +9,7 @@ export class PanePool {
   private readonly configService = container.resolve(ConfigService);
   public readonly pool = new Map<string, Pane>();
   private _currentPaneId: string | undefined = undefined;
+  private isRecreating = false;
 
   public constructor() {
     this.registerIpc();
@@ -64,6 +65,10 @@ export class PanePool {
         panes: { [target]: { visible: false } },
       });
       this.pool.delete(target);
+
+      if (!this.isRecreating && this.pool.size === 0) {
+        electronApp.quit();
+      }
     });
     window.on('resize', () => {
       const webContentsView = this.pool.get(target)?.getCurrentView();
@@ -112,14 +117,19 @@ export class PanePool {
 
   public async recreateWindows() {
     const snapshot = this.snapshotState();
-    this.pool.forEach((browserWindow) => {
-      browserWindow.window.destroy();
-    });
-    await Promise.all(
-      snapshot.panes.map(async (windowSnapshot) => {
-        await this.restoreWindow(windowSnapshot);
-      }),
-    );
+    this.isRecreating = true;
+    try {
+      this.pool.forEach((browserWindow) => {
+        browserWindow.window.destroy();
+      });
+      await Promise.all(
+        snapshot.panes.map(async (windowSnapshot) => {
+          await this.restoreWindow(windowSnapshot);
+        }),
+      );
+    } finally {
+      this.isRecreating = false;
+    }
   }
 
   private snapshotState(): AppSnapshot {

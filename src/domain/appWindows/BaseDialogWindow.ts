@@ -1,4 +1,4 @@
-import { BrowserWindow, screen } from 'electron';
+import { app as electronApp, BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
 
 export abstract class BaseDialogWindow {
@@ -8,19 +8,30 @@ export abstract class BaseDialogWindow {
   protected nodeIntegration = false;
   protected isQuitting = false;
 
-  public setQuitting(flag: boolean) {
-    this.isQuitting = flag;
-  }
+  private readonly handleBeforeQuit = () => {
+    this.isQuitting = true;
+    if (!this.window || this.window.isDestroyed()) return;
+
+    this.window.removeListener('close', this.handleClose);
+    this.window.close();
+  };
+
+  private readonly handleClose = (event: Electron.Event) => {
+    if (this.isQuitting) return;
+
+    event.preventDefault();
+    this.window?.hide();
+  };
 
   public constructor() {
     this.registerIpc();
+    electronApp.on('before-quit', this.handleBeforeQuit);
   }
 
   public async show(): Promise<void> {
     if (!this.window || this.window.isDestroyed()) {
       await this.createWindow();
     }
-
     this.sendShowSignal();
     this.window!.show();
     this.window!.focus();
@@ -79,15 +90,11 @@ export abstract class BaseDialogWindow {
       }
     });
 
-    window.on('close', (e) => {
-      if (this.isQuitting) return;
-
-      e.preventDefault();
-      this.window?.hide();
-    });
+    window.on('close', this.handleClose);
 
     window.on('closed', () => {
       this.window = undefined;
+      this.isQuitting = false;
     });
 
     await window.loadFile(

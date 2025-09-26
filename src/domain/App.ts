@@ -86,9 +86,6 @@ export class App {
     this.appWindows.openView = new OpenViewWindow(this);
 
     this._appMenu = new AppMenu(this);
-    electronApp.on('before-quit', () =>
-      this.appWindows.preferences?.setQuitting(true),
-    );
   }
 
   public async handleInvocation(argv: string[]) {
