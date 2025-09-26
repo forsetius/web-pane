@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en" data-bs-theme="light">
+
 <head>
     <title id="docTitle"></title>
     <meta charset="utf-8" />
@@ -12,18 +13,17 @@
 </head>
 
 <body>
-<div class="window">
-<!-- TITLE BAR -->
-<header class="window__header">
-    <h1 class="window__title" id="title"></h1>
-    <button type="button" class="btn btn-close window__close" id="btnClose"
-            aria-label="Zamknij" data-i18n-aria-label="common.close"></button>
-</header>
+    <div class="window">
+        <!-- TITLE BAR -->
+        <header class="window__header">
+            <h1 class="window__title" id="title"></h1>
+            <button type="button" class="btn btn-close window__close" id="btnClose" aria-label="Zamknij"></button>
+        </header>
 
-<!-- MAIN CONTENT -->
-<main class="window__main container">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-10 col-lg-8">
+        <!-- MAIN CONTENT -->
+        <main class="window__main container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-10 col-lg-8">
 
                     <div class="mb-3">
                         <div class="form-check form-switch">
@@ -47,18 +47,19 @@
                         </div>
                     </div>
                     <div class="hint mb-3" id="showInWindowListHint"></div>
-        </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- BUTTON BAR -->
+        <footer class="window__footer">
+            <button id="btnCloseB" type="button" class="btn btn-primary">
+                ✕ <span id="closeBtnLabel"></span>
+            </button>
+        </footer>
     </div>
-</main>
 
-    <!-- BUTTON BAR -->
-    <footer class="window__footer">
-        <button id="btnCloseB" type="button" class="btn btn-primary">
-            ✕ <span id="closeBtnLabel"></span>
-        </button>
-    </footer>
-</div>
-
-<script type="module" src="./preferences.js"></script>
+    <script type="module" src="./preferences.js"></script>
 </body>
+
 </html>

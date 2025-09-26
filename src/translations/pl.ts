@@ -38,7 +38,15 @@ export const translations: TranslationStrings = {
   },
   windows: {
     about: {
-      title: 'O Web-pane',
+      title: 'O aplikacji',
+      name: 'Nazwa',
+      version: 'Wersja',
+      author: 'Autor',
+      license: 'Licencja',
+      homepage: 'Strona projektu',
+      repository: 'Repozytorium',
+      bugs: 'Zgłoszenia błędów',
+      close: 'Zamknij',
     },
     newPane: {
       title: 'Nowe okienko',

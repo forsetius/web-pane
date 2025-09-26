@@ -1,4 +1,8 @@
-import { BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
+import {
+  BrowserWindow,
+  Menu,
+  MenuItemConstructorOptions,
+} from 'electron';
 import { App } from './App.js';
 import { Lang } from '../types/Lang.js';
 import { container } from 'tsyringe';
@@ -140,18 +144,14 @@ export class AppMenu {
       {
         label: t.get(lang, 'menu.help'),
         submenu: [
-          {
-            label: t.get(lang, 'menu.instruction'),
-            // click: () => {
-            //   void this.showLocalPageWindow(`readme-${lang}.html`);
-            // },
-          },
-          {
-            label: t.get(lang, 'menu.about'),
-            // click: () => {
-            //   void this.showAboutWindow();
-            // },
-          },
+          process.platform === 'darwin'
+            ? { role: 'about' }
+            : {
+              label: t.get(lang, 'menu.about'),
+              click: () => {
+                this.showAboutWindow();
+              },
+            },
         ],
       },
     ];
@@ -218,13 +218,9 @@ export class AppMenu {
     pane.getCurrentView()?.webContents.reloadIgnoringCache();
   }
 
-  // private async showAboutWindow() {
-  //   await this.app.appWindows.about?.show();
-  // }
-  //
-  // private async showLocalPageWindow(page: string) {
-  //   await this.app.appWindows.localPage?.show(`../../assets/${page}`);
-  // }
+  private async showAboutWindow() {
+    await this.app.appWindows.about?.show();
+  }
 
   private async showPreferencesWindow() {
     await this.app.appWindows.preferences?.show();

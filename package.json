@@ -1,11 +1,20 @@
 {
   "name": "web-pane",
   "version": "1.0.2",
-  "description": "Pane utility windows for Plank",
+  "description": "Pane utility windows",
   "author": {
     "name": "Marcin Forseti Paździora",
     "email": "marcin.pazdziora@forseti.pl",
     "url": "https://forseti.pl"
+  },
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/forsetius/web-pane",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forsetius/web-pane.git"
+  },
+  "bugs": {
+    "url": "https://github.com/forsetius/web-pane/issues"
   },
   "main": "dist/index.js",
   "type": "module",

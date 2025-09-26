@@ -38,7 +38,15 @@ export const translations: TranslationStrings = {
   },
   windows: {
     about: {
-      title: 'About',
+      title: 'About the application',
+      name: 'Name',
+      version: 'Version',
+      author: 'Author',
+      license: 'License',
+      homepage: 'Homepage',
+      repository: 'Repository',
+      bugs: 'Bug reports',
+      close: 'Close',
     },
     newPane: {
       title: 'New pane',

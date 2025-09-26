@@ -59,6 +59,14 @@ export interface MenuTranslations {
 
 export interface AboutWindowTranslations {
   title: string;
+  name: string;
+  version: string;
+  author: string;
+  license: string;
+  homepage: string;
+  repository: string;
+  bugs: string;
+  close: string;
 }
 
 export interface MoveViewWindowTranslations {

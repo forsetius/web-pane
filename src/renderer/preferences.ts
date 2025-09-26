@@ -1,18 +1,16 @@
 import type { PreferencesWindowTranslations } from '../types/TranslationStrings.js';
 import { getTyped } from '../utils/object.js';
-
-const qs = <T extends Element>(selector: string): T =>
-  document.querySelector(selector)!;
+import { el } from '../utils/dom.js';
 
 const translations: Record<string, keyof PreferencesWindowTranslations> = {
-  '#docTitle': 'title',
-  '#title': 'title',
-  '#showInWindowListLabel': 'showInWindowList',
-  '#showWindowFrameLabel': 'showWindowFrame',
-  '#showWindowFrameHint': 'windowReloadNeededHint',
-  '#showInWindowListHint': 'windowReloadNeededHint',
-  '#showAppMenuLabel': 'showAppMenu',
-  '#closeBtnLabel': 'close',
+  'docTitle': 'title',
+  'title': 'title',
+  'showInWindowListLabel': 'showInWindowList',
+  'showWindowFrameLabel': 'showWindowFrame',
+  'showWindowFrameHint': 'windowReloadNeededHint',
+  'showInWindowListHint': 'windowReloadNeededHint',
+  'showAppMenuLabel': 'showAppMenu',
+  'closeBtnLabel': 'close',
 };
 
 async function main() {
@@ -23,30 +21,30 @@ async function main() {
       t,
       `windows.preferences.${translationKey}`,
     ) as unknown;
-    qs(id).textContent = typeof value === 'string' ? value : '';
+    el(id).textContent = typeof value === 'string' ? value : '';
   }
 
-  qs<HTMLDivElement>('#showInWindowListHint').hidden =
+  el<HTMLDivElement>('showInWindowListHint').hidden =
     window.preferences.info.platform !== 'linux';
 
   const prefs = await window.preferences.get();
-  qs<HTMLInputElement>('#showInWindowList').checked = prefs.showInWindowList;
-  qs<HTMLInputElement>('#showWindowFrame').checked = prefs.showWindowFrame;
-  qs<HTMLInputElement>('#showAppMenu').checked = prefs.showAppMenu;
+  el<HTMLInputElement>('showInWindowList').checked = prefs.showInWindowList;
+  el<HTMLInputElement>('showWindowFrame').checked = prefs.showWindowFrame;
+  el<HTMLInputElement>('showAppMenu').checked = prefs.showAppMenu;
 
-  qs('#showInWindowList').addEventListener('change', (e) => {
+  el('showInWindowList').addEventListener('change', (e) => {
     window.preferences.set({
       showInWindowList: (e.target as HTMLInputElement).checked,
     });
   });
 
-  qs('#showWindowFrame').addEventListener('change', (e) => {
+  el('showWindowFrame').addEventListener('change', (e) => {
     window.preferences.set({
       showWindowFrame: (e.target as HTMLInputElement).checked,
     });
   });
 
-  qs('#showAppMenu').addEventListener('change', (e) => {
+  el('showAppMenu').addEventListener('change', (e) => {
     window.preferences.set({
       showAppMenu: (e.target as HTMLInputElement).checked,
     });
@@ -55,12 +53,12 @@ async function main() {
   const close = () => {
     window.close();
   };
-  qs('#btnClose').addEventListener('click', close);
-  qs('#btnCloseB').addEventListener('click', close);
+  el('btnClose').addEventListener('click', close);
+  el('btnCloseB').addEventListener('click', close);
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') window.close();
   });
 }
 
 void main().catch(console.error);
-export {};
+export { };

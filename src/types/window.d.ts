@@ -9,6 +9,7 @@ import { MoveViewPayload } from './MoveView.js';
 
 declare global {
   interface Window {
+    about: AboutAPI;
     dialog: DialogAPI;
     i18n: I18nAPI;
     moveView: MoveViewAPI;
@@ -17,6 +18,10 @@ declare global {
     preferences: PreferencesAPI;
     switcher: SwitcherAPI;
   }
+}
+
+export interface AboutAPI {
+  getInfo: () => Promise<AboutInfo>;
 }
 
 export interface DialogAPI {

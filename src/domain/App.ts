@@ -11,8 +11,7 @@ import { OpenViewWindow } from './appWindows/OpenViewWindow.js';
 import { TranslationService } from './TranslationService.js';
 import { NewPaneWindow } from './appWindows/NewPaneWindow.js';
 import { MoveViewWindow } from './appWindows/MoveViewWindow.js';
-// import { AboutWindow } from './appWindows/AboutWindow.js';
-// import { LocalPageWindow } from './appWindows/LocalPageWindow.js';
+import { AboutWindow } from './appWindows/AboutWindow.js';
 
 @singleton()
 export class App {
@@ -23,8 +22,7 @@ export class App {
   public configService!: ConfigService;
   public translationService!: TranslationService;
   public readonly appWindows: AppWindows = {
-    // about: undefined,
-    // localPage: undefined,
+    about: undefined,
     moveView: undefined,
     newPane: undefined,
     openView: undefined,
@@ -73,8 +71,7 @@ export class App {
   public init() {
     this.translationService.registerIpc();
 
-    // this.appWindows.about = new AboutWindow();
-    // this.appWindows.localPage = new LocalPageWindow();
+    this.appWindows.about = new AboutWindow();
     this.appWindows.preferences = new PreferencesWindow(
       (ui) => {
         this.panes.applyUi(ui);
@@ -126,8 +123,7 @@ export class App {
 }
 
 interface AppWindows {
-  // about: AboutWindow | undefined;
-  // localPage: LocalPageWindow | undefined;
+  about: AboutWindow | undefined;
   moveView: MoveViewWindow | undefined;
   newPane: NewPaneWindow | undefined;
   openView: OpenViewWindow | undefined;
