@@ -2,7 +2,6 @@ import { Lang } from './types/Lang.js';
 import type { AppConfig } from './types/AppConfig.js';
 
 export const configDefaults: AppConfig = {
-  lang: Lang.PL,
   panes: {
     main: {
       visible: false,
@@ -14,6 +13,7 @@ export const configDefaults: AppConfig = {
     },
   },
   ui: {
+    lang: Lang.PL,
     showWindowFrame: true,
     showAppMenu: true,
     showInWindowList: true,

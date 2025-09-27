@@ -79,13 +79,16 @@ export class App {
       async () => {
         await this.panes.recreateWindows();
       },
+      (lang) => {
+        this.changeLanguage(lang);
+      },
     );
 
-    this.appWindows.moveView = new MoveViewWindow(this);
-    this.appWindows.newPane = new NewPaneWindow(this);
-    this.appWindows.openView = new OpenViewWindow(this);
+    this.appWindows.moveView = new MoveViewWindow(this.panes);
+    this.appWindows.newPane = new NewPaneWindow(this.panes);
+    this.appWindows.openView = new OpenViewWindow(this.panes);
 
-    this._appMenu = new AppMenu(this);
+    this._appMenu = new AppMenu(this.panes, this.appWindows);
   }
 
   public async handleInvocation(argv: string[]) {
@@ -113,13 +116,17 @@ export class App {
   }
 
   public changeLanguage(lang: Lang) {
-    this.configService.save({ lang });
+    this.configService.save({ ui: { lang } });
 
     this.appMenu.build(lang);
+
+    for (const dialog of Object.values(this.appWindows)) {
+      dialog?.refresh();
+    }
   }
 }
 
-interface AppWindows {
+export interface AppWindows {
   about: AboutWindow | undefined;
   moveView: MoveViewWindow | undefined;
   newPane: NewPaneWindow | undefined;

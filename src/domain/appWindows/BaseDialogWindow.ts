@@ -37,6 +37,11 @@ export abstract class BaseDialogWindow {
     this.window!.focus();
   }
 
+  public refresh(): void {
+    if (!this.window || this.window.isDestroyed()) return;
+    this.sendShowSignal();
+  }
+
   protected sendShowSignal(): void {
     const wc = this.window!.webContents;
 

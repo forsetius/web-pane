@@ -48,7 +48,6 @@ async function setupTranslations() {
 }
 
 function setupPaneSection(info: PanesInfo) {
-  // const wrap = document.getElementById('paneExistingWrap')!;
   const rExist = document.getElementById(
     'paneChoice_existing',
   ) as HTMLInputElement;
@@ -159,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     void refreshPanes();
     wireLiveValidation();
     window.dialog.onShow(() => {
+      void setupTranslations();
       resetFormUi();
       void refreshPanes();
     });

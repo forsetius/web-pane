@@ -14,17 +14,19 @@ const translations: Record<string, DotPath<AboutWindowTranslations>> = {
   btnCloseBLabel: 'close',
 };
 
-async function main() {
-  const t = await window.i18n.bundle();
+async function applyTranslations(): Promise<void> {
+  const bundle = await window.i18n.bundle();
 
   for (const [id, translationKey] of Object.entries(translations)) {
     const value = getTyped(
-      t,
+      bundle,
       `windows.about.${translationKey}`,
     ) as unknown;
     el(id).textContent = typeof value === 'string' ? value : '';
   }
+}
 
+async function renderAppInfo(): Promise<void> {
   const appInfo = await window.about.getInfo();
 
   el('appName').textContent = appInfo.name;
@@ -38,16 +40,36 @@ async function main() {
   el<HTMLAnchorElement>('appRepository').href = appInfo.repository;
   el('appBugs').textContent = appInfo.bugs;
   el<HTMLAnchorElement>('appBugs').href = appInfo.bugs;
-
-  const close = () => {
-    window.close();
-  };
-  el('btnClose').addEventListener('click', close);
-  el('btnCloseB').addEventListener('click', close);
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') window.close();
-  });
 }
 
-void main().catch(console.error);
-export { };
+document.addEventListener('DOMContentLoaded', () => {
+  void (async () => {
+    await applyTranslations();
+    await renderAppInfo();
+
+    window.dialog.onShow(() => {
+      void applyTranslations();
+    });
+
+    const close = () => {
+      window.close();
+    };
+    el('btnClose').addEventListener('click', close);
+    el('btnCloseB').addEventListener('click', close);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') window.close();
+    });
+
+    document.body.addEventListener('click', (event) => {
+      const anchor = (event.target as HTMLElement | null)?.closest(
+        'a.external-link[href]'
+      );
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+
+      event.preventDefault();
+      window.about.openExternal(anchor.href);
+    });
+  })();
+});
+
+export {};

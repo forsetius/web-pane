@@ -3,18 +3,19 @@ import {
   Menu,
   MenuItemConstructorOptions,
 } from 'electron';
-import { App } from './App.js';
+import { AppWindows } from './App.js';
 import { Lang } from '../types/Lang.js';
 import { container } from 'tsyringe';
 import { TranslationService } from './TranslationService.js';
 import { ConfigService } from './ConfigService.js';
+import { PanePool } from './PanePool.js';
 
 export class AppMenu {
   private readonly configService = container.resolve(ConfigService);
   private readonly translationService = container.resolve(TranslationService);
 
-  public constructor(private readonly app: App) {
-    this.build(this.configService.get('lang'));
+  public constructor(private readonly panes: PanePool, private readonly appWindows: AppWindows) {
+    this.build(this.configService.get('ui.lang'));
   }
 
   public build(lang: Lang) {
@@ -164,27 +165,27 @@ export class AppMenu {
   }
 
   private closeView(window: Electron.BrowserWindow) {
-    const pane = this.app.panes.getById(window.id);
+    const pane = this.panes.getById(window.id);
     if (!pane) return;
     pane.closeView();
   }
 
   private goBack() {
-    const viewHistory = this.app.panes.getCurrent()?.getCurrentView()
+    const viewHistory = this.panes.getCurrent()?.getCurrentView()
       ?.webContents.navigationHistory;
 
     if (viewHistory?.canGoBack()) viewHistory.goBack();
   }
 
   private goForward() {
-    const viewHistory = this.app.panes.getCurrent()?.getCurrentView()
+    const viewHistory = this.panes.getCurrent()?.getCurrentView()
       ?.webContents.navigationHistory;
 
     if (viewHistory?.canGoForward()) viewHistory.goForward();
   }
 
   private minimize() {
-    const pane = this.app.panes.getCurrent();
+    const pane = this.panes.getCurrent();
     if (!pane) return;
 
     if (!pane.window.isMinimized()) {
@@ -193,36 +194,36 @@ export class AppMenu {
   }
 
   private moveView() {
-    void this.app.appWindows.moveView?.show();
+    void this.appWindows.moveView?.show();
   }
 
   private newPane() {
-    void this.app.appWindows.newPane?.show();
+    void this.appWindows.newPane?.show();
   }
 
   private openView() {
-    void this.app.appWindows.openView?.show();
+    void this.appWindows.openView?.show();
   }
 
   private reload() {
-    const pane = this.app.panes.getCurrent();
+    const pane = this.panes.getCurrent();
     if (!pane) return;
 
     pane.getCurrentView()?.webContents.reload();
   }
 
   private reloadUncached() {
-    const pane = this.app.panes.getCurrent();
+    const pane = this.panes.getCurrent();
     if (!pane) return;
 
     pane.getCurrentView()?.webContents.reloadIgnoringCache();
   }
 
   private async showAboutWindow() {
-    await this.app.appWindows.about?.show();
+    await this.appWindows.about?.show();
   }
 
   private async showPreferencesWindow() {
-    await this.app.appWindows.preferences?.show();
+    await this.appWindows.preferences?.show();
   }
 }

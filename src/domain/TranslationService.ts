@@ -63,7 +63,7 @@ export class TranslationService {
     ipcMain.handle(
       'i18n:t',
       (_e, key: CT.DotPath<TranslationStrings>, lang?: Lang) => {
-        const language = lang ?? this.configService.get('lang');
+        const language = lang ?? this.configService.get('ui.lang');
         this.assertLang(language);
 
         return this.get(language, key);
@@ -72,7 +72,7 @@ export class TranslationService {
 
     ipcMain.removeHandler('i18n:bundle');
     ipcMain.handle('i18n:bundle', (_e, lang?: Lang) => {
-      const language = lang ?? this.configService.get('lang');
+      const language = lang ?? this.configService.get('ui.lang');
       this.assertLang(language);
 
       return this.store[language];

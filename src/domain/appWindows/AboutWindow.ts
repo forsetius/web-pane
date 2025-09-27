@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { ipcMain } from "electron";
+import { ipcMain, shell } from "electron";
 import { z } from "zod";
 import { BaseDialogWindow } from "./BaseDialogWindow.js";
 
@@ -34,6 +34,10 @@ export class AboutWindow extends BaseDialogWindow {
 
             return this.appInfo;
         });
+        ipcMain.on('about:open-external', (_event, url: string) => {
+            void shell.openExternal(url);
+        });
+
     }
 
     private getInfo(): AboutInfo {

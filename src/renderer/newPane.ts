@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     void refreshPanes();
     wireLiveValidation();
     window.dialog.onShow(() => {
+      void setupTranslations();
       resetFormUi();
       void refreshPanes();
     });

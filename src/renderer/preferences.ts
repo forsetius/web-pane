@@ -1,36 +1,50 @@
 import type { PreferencesWindowTranslations } from '../types/TranslationStrings.js';
+import { Lang } from '../types/Lang.js';
 import { getTyped } from '../utils/object.js';
 import { el } from '../utils/dom.js';
 
 const translations: Record<string, keyof PreferencesWindowTranslations> = {
-  'docTitle': 'title',
-  'title': 'title',
-  'showInWindowListLabel': 'showInWindowList',
-  'showWindowFrameLabel': 'showWindowFrame',
-  'showWindowFrameHint': 'windowReloadNeededHint',
-  'showInWindowListHint': 'windowReloadNeededHint',
-  'showAppMenuLabel': 'showAppMenu',
-  'closeBtnLabel': 'close',
+  docTitle: 'title',
+  title: 'title',
+  showInWindowListLabel: 'showInWindowList',
+  showWindowFrameLabel: 'showWindowFrame',
+  showWindowFrameHint: 'windowReloadNeededHint',
+  showInWindowListHint: 'windowReloadNeededHint',
+  showAppMenuLabel: 'showAppMenu',
+  closeBtnLabel: 'close',
+  languageLabel: 'language',
+  languageOptionEn: 'english',
+  languageOptionPl: 'polish',
 };
 
-async function main() {
-  const t = await window.i18n.bundle();
+const LANG_VALUES = Object.values(Lang) as Lang[];
+let currentLang: Lang | undefined;
+
+async function applyTranslations(): Promise<void> {
+  const bundle = await window.i18n.bundle();
 
   for (const [id, translationKey] of Object.entries(translations)) {
     const value = getTyped(
-      t,
+      bundle,
       `windows.preferences.${translationKey}`,
     ) as unknown;
     el(id).textContent = typeof value === 'string' ? value : '';
   }
+}
 
-  el<HTMLDivElement>('showInWindowListHint').hidden =
-    window.preferences.info.platform !== 'linux';
-
+async function hydratePreferences(): Promise<void> {
   const prefs = await window.preferences.get();
+
+  currentLang = prefs.lang;
   el<HTMLInputElement>('showInWindowList').checked = prefs.showInWindowList;
   el<HTMLInputElement>('showWindowFrame').checked = prefs.showWindowFrame;
   el<HTMLInputElement>('showAppMenu').checked = prefs.showAppMenu;
+  el<HTMLSelectElement>('languageSelect').value = prefs.lang;
+}
+
+function setupEventListeners(): void {
+  el('showInWindowListHint').hidden =
+    window.preferences.info.platform !== 'linux';
 
   el('showInWindowList').addEventListener('change', (e) => {
     window.preferences.set({
@@ -50,6 +64,16 @@ async function main() {
     });
   });
 
+  el<HTMLSelectElement>('languageSelect').addEventListener('change', (e) => {
+    const lang = (e.target as HTMLSelectElement).value as Lang;
+    if (!LANG_VALUES.includes(lang)) return;
+    if (lang === currentLang) return;
+
+    currentLang = lang;
+    window.preferences.set({ lang });
+    void applyTranslations();
+  });
+
   const close = () => {
     window.close();
   };
@@ -60,5 +84,22 @@ async function main() {
   });
 }
 
-void main().catch(console.error);
+async function refreshPreferencesWindow(): Promise<void> {
+  void Promise.all([
+    applyTranslations(),
+    hydratePreferences(),
+  ]);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  void (async () => {
+    await refreshPreferencesWindow();
+    setupEventListeners();
+
+    window.dialog.onShow(() => {
+      void refreshPreferencesWindow();
+    });
+  })();
+});
+
 export { };

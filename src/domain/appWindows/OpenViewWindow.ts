@@ -1,13 +1,13 @@
 import { ipcMain, shell } from 'electron';
-import { App } from '../App.js';
 import { BaseDialogWindow } from './BaseDialogWindow.js';
+import { PanePool } from '../PanePool.js';
 
 export class OpenViewWindow extends BaseDialogWindow {
   protected preloader = 'openViewPreload.cjs';
   protected htmlContent = 'openView.html';
   protected override nodeIntegration = true;
 
-  public constructor(private readonly app: App) {
+  public constructor(private readonly panes: PanePool) {
     super();
   }
 
@@ -30,8 +30,8 @@ export class OpenViewWindow extends BaseDialogWindow {
         const { id, url, paneName } = payload;
         try {
           const pane =
-            this.app.panes.get(paneName) ??
-            this.app.panes.createWindow(paneName);
+            this.panes.get(paneName) ??
+            this.panes.createWindow(paneName);
 
           void pane.createView(id, url).then(() => pane.displayView(id));
         } catch (err) {

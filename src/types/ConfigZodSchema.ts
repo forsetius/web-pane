@@ -11,9 +11,9 @@ const WindowSchema = z.object({
 });
 
 export const ConfigZodSchema = z.object({
-  lang: z.enum(Lang),
   panes: z.object({ main: WindowSchema }).catchall(WindowSchema),
   ui: z.object({
+    lang: z.enum(Lang),
     showWindowFrame: z.boolean(),
     showAppMenu: z.boolean(),
     showInWindowList: z.boolean(),

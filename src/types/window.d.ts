@@ -22,6 +22,7 @@ declare global {
 
 export interface AboutAPI {
   getInfo: () => Promise<AboutInfo>;
+  openExternal: (url: string) => void;
 }
 
 export interface DialogAPI {
