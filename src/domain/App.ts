@@ -12,6 +12,7 @@ import { TranslationService } from './TranslationService.js';
 import { NewPaneWindow } from './appWindows/NewPaneWindow.js';
 import { MoveViewWindow } from './appWindows/MoveViewWindow.js';
 import { AboutWindow } from './appWindows/AboutWindow.js';
+import { BaseDialogWindow } from './appWindows/BaseDialogWindow.js';
 
 @singleton()
 export class App {
@@ -116,13 +117,12 @@ export class App {
   }
 
   public changeLanguage(lang: Lang) {
-    this.configService.save({ ui: { lang } });
-
     this.appMenu.build(lang);
+    Object.values(this.appWindows).forEach((dialog: BaseDialogWindow | undefined) => {
+      if (!dialog?.window || (dialog.window.isDestroyed() || dialog.window.webContents.isDestroyed())) return;
 
-    for (const dialog of Object.values(this.appWindows)) {
-      dialog?.refresh();
-    }
+      dialog.window.webContents.send('i18n:language-changed', lang);
+    });
   }
 }
 

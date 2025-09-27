@@ -15,7 +15,7 @@ function applyFieldErrors(list: { fieldId: string }[]) {
   }
 }
 
-async function setupTranslations() {
+async function applyTranslations() {
   const t = await window.i18n.bundle();
 
   const translations: Record<string, DotPath<NewPaneWindowTranslations>> = {
@@ -91,14 +91,17 @@ async function refreshPanes() {
 
 document.addEventListener('DOMContentLoaded', () => {
   void (async () => {
-    await setupTranslations();
-
+    await applyTranslations();
     void refreshPanes();
     wireLiveValidation();
+
     window.dialog.onShow(() => {
-      void setupTranslations();
       resetFormUi();
       void refreshPanes();
+    });
+
+    window.i18n.onLanguageChanged(() => {
+      void applyTranslations();
     });
 
     setTimeout(() => {

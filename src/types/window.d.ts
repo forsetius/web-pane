@@ -30,6 +30,7 @@ export interface DialogAPI {
 }
 
 export interface I18nAPI {
+  onLanguageChanged: (cb: (lang: Lang) => void) => () => void;
   t<P extends string>(key: P, lang?: Lang): PathValue<TranslationStrings, P>;
   bundle(lang?: Lang): Promise<TranslationStrings>;
 }

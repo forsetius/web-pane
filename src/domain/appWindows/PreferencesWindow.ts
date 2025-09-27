@@ -31,7 +31,7 @@ export class PreferencesWindow extends BaseDialogWindow {
     ipcMain.handle('prefs:get-ui', () => this.configService.get('ui'));
 
     ipcMain.on('prefs:set-ui', (_e, patch: Partial<AppUiConfig>) => {
-      const before = this.configService.get('ui');
+      const before = { ...this.configService.get('ui') };
       this.configService.save({ ui: patch });
       const after = this.configService.get('ui');
 

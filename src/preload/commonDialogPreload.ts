@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { IpcRendererEvent } from 'electron';
 import type { Lang } from '../types/Lang.js';
 import type { TranslationStrings } from '../types/TranslationStrings.js';
 import type { DotPath, PathValue } from '../types/ConfigTypes.js';
@@ -12,6 +13,12 @@ contextBridge.exposeInMainWorld('dialog', {
 });
 
 contextBridge.exposeInMainWorld('i18n', {
+  onLanguageChanged: (cb: (lang: Lang) => void) => {
+    const handler = (_: IpcRendererEvent, lang: Lang) => cb(lang);
+    ipcRenderer.on('i18n:language-changed', handler);
+    return () => ipcRenderer.removeListener('i18n:language-changed', handler);
+  },
+
   t<P extends DotPath<TranslationStrings>>(
     key: P,
     lang?: Lang,

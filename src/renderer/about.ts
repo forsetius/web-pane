@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await applyTranslations();
     await renderAppInfo();
 
-    window.dialog.onShow(() => {
+    window.i18n.onLanguageChanged(() => {
       void applyTranslations();
     });
 
@@ -72,4 +72,4 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 });
 
-export {};
+export { };

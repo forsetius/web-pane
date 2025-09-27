@@ -17,7 +17,6 @@ const translations: Record<string, keyof PreferencesWindowTranslations> = {
   languageOptionPl: 'polish',
 };
 
-const LANG_VALUES = Object.values(Lang) as Lang[];
 let currentLang: Lang | undefined;
 
 async function applyTranslations(): Promise<void> {
@@ -66,12 +65,9 @@ function setupEventListeners(): void {
 
   el<HTMLSelectElement>('languageSelect').addEventListener('change', (e) => {
     const lang = (e.target as HTMLSelectElement).value as Lang;
-    if (!LANG_VALUES.includes(lang)) return;
-    if (lang === currentLang) return;
+    if (!Object.values(Lang).includes(lang) || lang === currentLang) return;
 
-    currentLang = lang;
     window.preferences.set({ lang });
-    void applyTranslations();
   });
 
   const close = () => {
@@ -98,6 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.dialog.onShow(() => {
       void refreshPreferencesWindow();
+    });
+
+    window.i18n.onLanguageChanged((lang) => {
+      currentLang = lang;
+      el<HTMLSelectElement>('languageSelect').value = lang;
+      void applyTranslations();
     });
   })();
 });

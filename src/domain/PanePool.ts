@@ -85,13 +85,13 @@ export class PanePool {
       this._currentPaneId = target;
     });
 
-    const appWindow = new Pane(target, window);
+    const pane = new Pane(target, window);
     this.configService.save({
       panes: { [target]: { visible: true } },
     });
-    this.pool.set(target, appWindow);
+    this.pool.set(target, pane);
 
-    return appWindow;
+    return pane;
   }
 
   private persistWindowGeometry(target: string) {
