@@ -1,6 +1,6 @@
 {
   "name": "web-pane",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Always-on-top windows that can host multiple web pages and switch between them.",
   "author": {
     "name": "Marcin Forseti Paździora",
