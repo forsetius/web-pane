@@ -29,7 +29,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src", "test"],
+  "include": ["src", "test", "src/types/**/*.d.ts"],
   "exclude": ["node_modules", "src/preload/**/*.ts"],
   "ts-node": {
     "transpileOnly": true,

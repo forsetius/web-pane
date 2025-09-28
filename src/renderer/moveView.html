@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pl" data-bs-theme="light">
+<head>
+    <title id="docTitle"></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="stylesheet" href="../../assets/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../assets/appWindows.css" />
+    <script type="module" src="../../assets/motif.js"></script>
+</head>
+<body>
+<div class="window">
+    <!-- TITLE BAR -->
+    <header class="window__header">
+        <h1 class="window__title" id="moveViewTitle" data-i18n="doMoveView.title"></h1>
+        <button type="button" class="btn btn-close window__close" id="btnClose"
+                aria-label="Zamknij" data-i18n-aria-label="common.close"></button>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="window__main">
+        <form id="moveViewForm" class="form-grid" novalidate>
+                <div class="pane-choice">
+                    <label class="form-label" id="paneChoice_label"></label>
+                    <div>
+                        <div class="form-check" id="paneExistingWrap">
+                            <input class="form-check-input" type="radio" name="paneChoice" id="paneChoice_existing" value="existing" disabled />
+                            <label class="form-check-label me-2" id="paneChoice_existing_label" for="paneChoice_existing"></label>
+                            <select class="form-select d-inline-block w-auto align-middle" id="paneExistingSelect" disabled aria-label="Pane select"></select>
+                            <div class="invalid-feedback" id="paneExistingError"></div>
+                        </div>
+
+                        <div class="form-check">
+                            <input checked class="form-check-input" type="radio" name="paneChoice" id="paneChoice_new" value="new" />
+                            <label class="form-check-label me-2" id="paneChoice_new_label" for="paneChoice_new"></label>
+                            <input type="text" class="form-control d-inline-block w-auto align-middle"
+                                   id="paneNewName" disabled />
+                            <div class="invalid-feedback" id="paneNewNameError"></div>
+                        </div>
+                    </div>
+                </div>
+        </form>
+    </main>
+
+    <!-- BUTTON BAR -->
+    <footer class="window__footer">
+        <button type="button" class="btn btn-secondary" id="btnCancel"></button>
+        <button type="submit" form="moveViewForm" class="btn btn-primary" id="btnSubmit" disabled></button>
+    </footer>
+</div>
+
+<script src="../../assets/bootstrap.bundle.min.js"></script>
+<script type="module" src="./moveView.js"></script>
+</body>
+</html>

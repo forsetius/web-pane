@@ -8,7 +8,7 @@ export class InvalidUrlException extends Error {
     const configService = container.resolve(ConfigService);
     const translationService = container.resolve(TranslationService);
     const translations = translationService.get(
-      configService.get('lang'),
+      configService.get('ui.lang'),
       'error.url',
     );
 

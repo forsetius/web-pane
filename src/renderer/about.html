@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pl" data-bs-theme="light">
+
+<head>
+    <title id="docTitle"></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="stylesheet" href="../../assets/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../assets/appWindows.css" />
+    <script type="module" src="../../assets/motif.js"></script>
+</head>
+
+<body>
+    <div class="window">
+        <!-- TITLE BAR -->
+        <header class="window__header">
+            <h1 class="window__title" id="aboutTitle"></h1>
+            <button type="button" class="btn btn-close window__close" id="btnClose" aria-label="Zamknij"></button>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="window__main" style="width:600px">
+            <div class=" container py-3">
+                <div class="row g-3 align-items-start">
+                    <div class="col">
+                        <span class="fs-3 fw-bold" id="appName"></span>
+                        <span class="fs-5 text-body-secondary" id="appVersion"></span>
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-sm-3 text-body-secondary" id="appAuthorLabel"></div>
+                            <div class="col-sm-9"><a id="appAuthor" class="external-link" href="#"
+                                    target="_blank"></a></div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-sm-3 text-body-secondary" id="appLicenseLabel"></div>
+                            <div class="col-sm-9" id="appLicense"></div>
+                        </div>
+                    </div>
+                    <div class="col pt-2">
+                        <p id="pagesLabel"></p>
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-sm-3 text-body-secondary" id="appHomepageLabel"></div>
+                            <div class="col-sm-9"><small><a id="appHomepage" class="external-link" href="#"
+                                        target="_blank"></a></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-sm-3 text-body-secondary" id="appRepositoryLabel"></div>
+                            <div class="col-sm-9"><small><a id="appRepository" class="external-link" href="#"
+                                        target="_blank"></a></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-sm-3 text-body-secondary" id="appBugsLabel"></div>
+                            <div class="col-sm-9"><small><a id="appBugs" class="external-link" href="#"
+                                        target="_blank"></a></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- BUTTON BAR -->
+        <footer class="window__footer">
+            <button id="btnCloseB" type="button" class="btn btn-primary">
+                ✕ <span id="btnCloseBLabel"></span>
+            </button>
+        </footer>
+    </div>
+
+    <script type="module" src="./about.js"></script>
+</body>
+
+</html>

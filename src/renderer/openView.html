@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pl" data-bs-theme="light">
+<head>
+    <title id="docTitle" data-i18n="openView.title"></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="stylesheet" href="../../assets/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../assets/appWindows.css" />
+    <script type="module" src="../../assets/motif.js"></script>
+</head>
+<body>
+<div class="window">
+    <!-- TITLE BAR -->
+    <header class="window__header">
+        <h1 class="window__title" id="openViewTitle" data-i18n="openView.title"></h1>
+        <button type="button" class="btn btn-close window__close" id="btnClose"
+                aria-label="Zamknij" data-i18n-aria-label="common.close"></button>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="window__main">
+        <form id="openViewForm" class="form-grid" novalidate>
+            <!-- URL -->
+            <div class="form-row">
+                <label id="openViewUrlLabel" for="openViewUrl" class="form-label" data-i18n="openView.url.label"></label>
+                <div>
+                    <input type="url" class="w-auto form-control" id="openViewUrl" name="url" required
+                           placeholder="https://example.com" inputmode="url" autocomplete="off"
+                           aria-describedby="openViewUrlHelp openViewUrlError" />
+                    <div class="invalid-feedback" id="openViewUrlError" data-i18n="openView.url.error"></div>
+                </div>
+            </div>
+
+            <!-- toggle: more... -->
+            <div class="more-toggle align-self-end">
+                <a class="link-secondary small" data-bs-toggle="collapse" href="#openViewMore" role="button"
+                   aria-expanded="false" aria-controls="openViewMore" id="openViewMoreToggle"></a>
+            </div>
+
+            <!-- section: more -->
+            <div class="collapse more-section" id="openViewMore">
+                <!-- ID -->
+                <div class="form-row">
+                    <label id="openViewId_label" for="openViewId" class="form-label" data-i18n="openView.id.label"></label>
+                    <div>
+                        <input type="text" class="w-auto form-control" id="openViewId" name="id"
+                               autocomplete="off"
+                               aria-describedby="openViewIdHelp openViewIdError" />
+                        <div class="invalid-feedback" id="openViewIdError"></div>
+                    </div>
+                </div>
+
+                <!-- wybór okienka (pane) -->
+                <div class="pane-choice">
+                    <label class="form-label" id="paneChoice_label"></label>
+                    <div>
+                        <!-- w tym okienku -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paneChoice" id="paneChoice_current" value="current" checked />
+                            <label class="form-check-label" id="paneChoice_current_label" for="paneChoice_current"></label>
+                        </div>
+
+                        <!-- w okienku… (lista istniejących) -->
+                        <div class="form-check" id="paneExistingWrap">
+                            <input class="form-check-input" type="radio" name="paneChoice" id="paneChoice_existing" value="existing" disabled />
+                            <label class="form-check-label me-2" id="paneChoice_existing_label" for="paneChoice_existing"></label>
+                            <select class="form-select d-inline-block w-auto align-middle" id="paneExistingSelect" disabled aria-label="Pane select"></select>
+                            <div class="invalid-feedback" id="paneExistingError"></div>
+                        </div>
+
+                        <!-- w nowym okienku -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paneChoice" id="paneChoice_new" value="new" />
+                            <label class="form-check-label me-2" id="paneChoice_new_label" for="paneChoice_new"></label>
+                            <input type="text" class="form-control d-inline-block w-auto align-middle"
+                                   id="paneNewName" disabled />
+                            <div class="invalid-feedback" id="paneNewNameError"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- BUTTON BAR -->
+    <footer class="window__footer">
+        <button type="button" class="btn btn-secondary" id="btnCancel"></button>
+        <button type="submit" form="openViewForm" class="btn btn-primary" id="btnSubmit" disabled></button>
+    </footer>
+</div>
+
+<script src="../../assets/bootstrap.bundle.min.js"></script>
+<script type="module" src="./openView.js"></script>
+</body>
+</html>

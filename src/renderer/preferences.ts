@@ -1,67 +1,107 @@
-import type { AppUiConfig } from '../types/AppConfig.js';
 import type { PreferencesWindowTranslations } from '../types/TranslationStrings.js';
+import { Lang } from '../types/Lang.js';
+import { getTyped } from '../utils/object.js';
+import { el } from '../utils/dom.js';
 
-declare global {
-  interface Window {
-    prefsAPI: {
-      get(): Promise<AppUiConfig>;
-      set(patch: Partial<AppUiConfig>): void;
-      t(key: keyof PreferencesWindowTranslations): Promise<string>;
-      info: {
-        platform: NodeJS.Platform;
-      };
-    };
+const translations: Record<string, keyof PreferencesWindowTranslations> = {
+  docTitle: 'title',
+  title: 'title',
+  showInWindowListLabel: 'showInWindowList',
+  showWindowFrameLabel: 'showWindowFrame',
+  showWindowFrameHint: 'windowReloadNeededHint',
+  showInWindowListHint: 'windowReloadNeededHint',
+  showAppMenuLabel: 'showAppMenu',
+  closeBtnLabel: 'close',
+  languageLabel: 'language',
+  languageOptionEn: 'english',
+  languageOptionPl: 'polish',
+};
+
+let currentLang: Lang | undefined;
+
+async function applyTranslations(): Promise<void> {
+  const bundle = await window.i18n.bundle();
+
+  for (const [id, translationKey] of Object.entries(translations)) {
+    const value = getTyped(
+      bundle,
+      `windows.preferences.${translationKey}`,
+    ) as unknown;
+    el(id).textContent = typeof value === 'string' ? value : '';
   }
 }
 
-const qs = <T extends Element>(selector: string): T =>
-  document.querySelector(selector)!;
+async function hydratePreferences(): Promise<void> {
+  const prefs = await window.preferences.get();
 
-const translations: Record<string, keyof PreferencesWindowTranslations> = {
-  '#docTitle': 'title',
-  '#title': 'title',
-  '#showInWindowListLabel': 'showInWindowList',
-  '#showWindowFrameLabel': 'showWindowFrame',
-  '#showWindowFrameHint': 'windowReloadNeededHint',
-  '#showInWindowListHint': 'windowReloadNeededHint',
-  '#showAppMenuLabel': 'showAppMenu',
-  '#closeBtnLabel': 'close',
-};
+  currentLang = prefs.lang;
+  el<HTMLInputElement>('showInWindowList').checked = prefs.showInWindowList;
+  el<HTMLInputElement>('showWindowFrame').checked = prefs.showWindowFrame;
+  el<HTMLInputElement>('showAppMenu').checked = prefs.showAppMenu;
+  el<HTMLSelectElement>('languageSelect').value = prefs.lang;
+}
 
-async function main() {
-  for (const [id, translationKey] of Object.entries(translations)) {
-    qs(id).textContent = await window.prefsAPI.t(translationKey);
-  }
-  qs<HTMLDivElement>('#showInWindowListHint').hidden =
-    window.prefsAPI.info.platform !== 'linux';
+function setupEventListeners(): void {
+  el('showInWindowListHint').hidden =
+    window.preferences.info.platform !== 'linux';
 
-  const prefs = await window.prefsAPI.get();
-  qs<HTMLInputElement>('#showInWindowList').checked = prefs.showInWindowList;
-  qs<HTMLInputElement>('#showWindowFrame').checked = prefs.showWindowFrame;
-  qs<HTMLInputElement>('#showAppMenu').checked = prefs.showAppMenu;
-
-  qs('#showInWindowList').addEventListener('change', (e) => {
-    window.prefsAPI.set({
+  el('showInWindowList').addEventListener('change', (e) => {
+    window.preferences.set({
       showInWindowList: (e.target as HTMLInputElement).checked,
     });
   });
 
-  qs('#showWindowFrame').addEventListener('change', (e) => {
-    window.prefsAPI.set({
+  el('showWindowFrame').addEventListener('change', (e) => {
+    window.preferences.set({
       showWindowFrame: (e.target as HTMLInputElement).checked,
     });
   });
 
-  qs('#showAppMenu').addEventListener('change', (e) => {
-    window.prefsAPI.set({
+  el('showAppMenu').addEventListener('change', (e) => {
+    window.preferences.set({
       showAppMenu: (e.target as HTMLInputElement).checked,
     });
   });
 
-  qs('#closeBtn').addEventListener('click', () => {
+  el<HTMLSelectElement>('languageSelect').addEventListener('change', (e) => {
+    const lang = (e.target as HTMLSelectElement).value as Lang;
+    if (!Object.values(Lang).includes(lang) || lang === currentLang) return;
+
+    window.preferences.set({ lang });
+  });
+
+  const close = () => {
     window.close();
+  };
+  el('btnClose').addEventListener('click', close);
+  el('btnCloseB').addEventListener('click', close);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') window.close();
   });
 }
 
-void main().catch(console.error);
-export {};
+async function refreshPreferencesWindow(): Promise<void> {
+  void Promise.all([
+    applyTranslations(),
+    hydratePreferences(),
+  ]);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  void (async () => {
+    await refreshPreferencesWindow();
+    setupEventListeners();
+
+    window.dialog.onShow(() => {
+      void refreshPreferencesWindow();
+    });
+
+    window.i18n.onLanguageChanged((lang) => {
+      currentLang = lang;
+      el<HTMLSelectElement>('languageSelect').value = lang;
+      void applyTranslations();
+    });
+  })();
+});
+
+export { };

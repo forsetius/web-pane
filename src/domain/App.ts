@@ -1,5 +1,5 @@
 import { app as electronApp } from 'electron';
-import { container } from 'tsyringe';
+import { container, singleton } from 'tsyringe';
 import { AppMenu } from './AppMenu.js';
 import { PanePool } from './PanePool.js';
 import { ConfigService } from './ConfigService.js';
@@ -7,14 +7,26 @@ import { Lang } from '../types/Lang.js';
 import { PreferencesWindow } from './appWindows/PreferencesWindow.js';
 import { parseCli } from '../parseCli.js';
 import { quitWithFatalError } from '../utils/error.js';
+import { OpenViewWindow } from './appWindows/OpenViewWindow.js';
+import { TranslationService } from './TranslationService.js';
+import { NewPaneWindow } from './appWindows/NewPaneWindow.js';
+import { MoveViewWindow } from './appWindows/MoveViewWindow.js';
+import { AboutWindow } from './appWindows/AboutWindow.js';
+import { BaseDialogWindow } from './appWindows/BaseDialogWindow.js';
 
+@singleton()
 export class App {
   public readonly hasLock: boolean;
   public readonly electron: typeof electronApp;
   public _appMenu: AppMenu | undefined = undefined;
   public _panes: PanePool | undefined = undefined;
   public configService!: ConfigService;
+  public translationService!: TranslationService;
   public readonly appWindows: AppWindows = {
+    about: undefined,
+    moveView: undefined,
+    newPane: undefined,
+    openView: undefined,
     preferences: undefined,
   };
 
@@ -54,10 +66,13 @@ export class App {
       console.error(e);
       quitWithFatalError(electronApp, 'Failed to load config.');
     }
+    this.translationService = container.resolve(TranslationService);
   }
 
   public init() {
-    this._appMenu = new AppMenu(this);
+    this.translationService.registerIpc();
+
+    this.appWindows.about = new AboutWindow();
     this.appWindows.preferences = new PreferencesWindow(
       (ui) => {
         this.panes.applyUi(ui);
@@ -65,10 +80,16 @@ export class App {
       async () => {
         await this.panes.recreateWindows();
       },
+      (lang) => {
+        this.changeLanguage(lang);
+      },
     );
-    electronApp.on('before-quit', () =>
-      this.appWindows.preferences?.setQuitting(true),
-    );
+
+    this.appWindows.moveView = new MoveViewWindow(this.panes);
+    this.appWindows.newPane = new NewPaneWindow(this.panes);
+    this.appWindows.openView = new OpenViewWindow(this.panes);
+
+    this._appMenu = new AppMenu(this.panes, this.appWindows);
   }
 
   public async handleInvocation(argv: string[]) {
@@ -96,25 +117,19 @@ export class App {
   }
 
   public changeLanguage(lang: Lang) {
-    this.configService.save({ lang });
-
     this.appMenu.build(lang);
-  }
+    Object.values(this.appWindows).forEach((dialog: BaseDialogWindow | undefined) => {
+      if (!dialog?.window || (dialog.window.isDestroyed() || dialog.window.webContents.isDestroyed())) return;
 
-  public toggleFocusedDevTools(detach = true): void {
-    const activeView = this.appWindows.preferences?.window;
-    const wc = activeView?.webContents;
-
-    if (!wc) return;
-
-    if (wc.isDevToolsOpened()) {
-      wc.closeDevTools();
-    } else {
-      wc.openDevTools({ mode: detach ? 'detach' : 'right' });
-    }
+      dialog.window.webContents.send('i18n:language-changed', lang);
+    });
   }
 }
 
-interface AppWindows {
+export interface AppWindows {
+  about: AboutWindow | undefined;
+  moveView: MoveViewWindow | undefined;
+  newPane: NewPaneWindow | undefined;
+  openView: OpenViewWindow | undefined;
   preferences: PreferencesWindow | undefined;
 }
